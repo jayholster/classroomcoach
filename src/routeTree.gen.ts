@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAssuranceRouteImport } from './routes/_authenticated/assurance'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedDesignIndexRouteImport } from './routes/_authenticated/design.index'
 import { Route as AuthenticatedDesignIdRouteImport } from './routes/_authenticated/design.$id'
@@ -33,6 +34,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAssuranceRoute = AuthenticatedAssuranceRouteImport.update({
+  id: '/assurance',
+  path: '/assurance',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   id: '/library',
@@ -77,6 +83,7 @@ const AuthenticatedReviewSessionIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/assurance': typeof AuthenticatedAssuranceRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof AuthenticatedDesignIdRoute
   '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/assurance': typeof AuthenticatedAssuranceRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof AuthenticatedDesignIdRoute
   '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/assurance': typeof AuthenticatedAssuranceRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/design/$id': typeof AuthenticatedDesignIdRoute
   '/_authenticated/rehearse/$id': typeof AuthenticatedRehearseIdRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/assurance'
     | '/library'
     | '/design/$id'
     | '/rehearse/$id'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/assurance'
     | '/library'
     | '/design/$id'
     | '/rehearse/$id'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/assurance'
     | '/_authenticated/library'
     | '/_authenticated/design/$id'
     | '/_authenticated/rehearse/$id'
@@ -174,6 +186,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/assurance': {
+      id: '/_authenticated/assurance'
+      path: '/assurance'
+      fullPath: '/assurance'
+      preLoaderRoute: typeof AuthenticatedAssuranceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/library': {
       id: '/_authenticated/library'
@@ -228,6 +247,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAssuranceRoute: typeof AuthenticatedAssuranceRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedDesignIdRoute: typeof AuthenticatedDesignIdRoute
   AuthenticatedRehearseIdRoute: typeof AuthenticatedRehearseIdRoute
@@ -238,6 +258,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAssuranceRoute: AuthenticatedAssuranceRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedDesignIdRoute: AuthenticatedDesignIdRoute,
   AuthenticatedRehearseIdRoute: AuthenticatedRehearseIdRoute,
