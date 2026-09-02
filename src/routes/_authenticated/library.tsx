@@ -155,6 +155,26 @@ function LibraryPage() {
         ))}
       </div>
 
+      {(assignmentsQuery.data ?? []).length > 0 && (
+        <section className="panel mt-8 p-5">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-primary">Assignments</h2>
+          <ul className="mt-4 divide-y divide-border">
+            {(assignmentsQuery.data ?? []).map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div>
+                  <p className="text-sm text-foreground">{a.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {a.scenario_title ?? "Simulation"} · {a.version_label ?? "version"} ·{" "}
+                    {a.group_name ?? "All eligible learners"}
+                  </p>
+                </div>
+                <Chip tone={a.status === "open" ? "accent" : "default"}>{a.status}</Chip>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {assigning && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/20 p-6" role="dialog" aria-modal="true" aria-labelledby="assign-title">
           <div className="w-full max-w-xl border border-border bg-card p-6 shadow-lg">
