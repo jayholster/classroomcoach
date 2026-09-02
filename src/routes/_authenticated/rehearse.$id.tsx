@@ -352,9 +352,73 @@ function RehearsePage() {
       </div>
 
 
+      {showScene && (
+        <Drawer title="Change the scene" onClose={() => setShowScene(false)}>
+          <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+            The same people carry everything that has happened so far. Only the place, time, and who is in the room change.
+          </p>
+          <label className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground" htmlFor="scene-label">
+            New scene
+          </label>
+          <input
+            id="scene-label"
+            className={`${input} mt-1`}
+            list="scene-presets"
+            placeholder="Later the same day"
+            value={sceneLabel}
+            onChange={(e) => setSceneLabel(e.target.value)}
+          />
+          <datalist id="scene-presets">
+            {SCENE_PRESETS.map((preset) => (
+              <option key={preset} value={preset} />
+            ))}
+          </datalist>
+          <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground" htmlFor="scene-note">
+            What has changed (optional)
+          </label>
+          <textarea
+            id="scene-note"
+            className={`${input} mt-1`}
+            rows={3}
+            placeholder="The bell has rung and the room has emptied out."
+            value={sceneDescription}
+            onChange={(e) => setSceneDescription(e.target.value)}
+          />
+          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Who is present</p>
+          <div className="mt-2 space-y-2">
+            {data.spec.participants.map((participant) => (
+              <label key={participant.id} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={presentParticipants.includes(participant.name)}
+                  onChange={(e) =>
+                    setPresentParticipants((prev) =>
+                      e.target.checked ? [...prev, participant.name] : prev.filter((name) => name !== participant.name),
+                    )
+                  }
+                />
+                <span>
+                  {participant.name} <span className="text-muted-foreground">· {participant.role}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <button
+            type="button"
+            className={`${btnPrimary} mt-5`}
+            disabled={busy || !sceneLabel.trim() || presentParticipants.length === 0}
+            onClick={() => void saveScene()}
+          >
+            {busy ? "Changing scene…" : "Change the scene"}
+          </button>
+        </Drawer>
+      )}
+
       {showState && (
         <Drawer title="Current simulation state" onClose={() => setShowState(false)}>
-          <StateList label="Active participants" items={data.state.active_participants} />
+          <StateList label="Current scene" items={[data.state.scene.label, data.state.scene.description].filter(Boolean)} />
+          <StateList label="Present in the room" items={currentPresent} />
+          <StateList label="Full cast" items={data.state.active_participants} />
           <StateList label="Unresolved" items={data.state.unresolved} />
           <StateList label="Participation changes" items={data.state.participation} />
           <StateList label="Relationship changes" items={data.state.relationship_changes} />
