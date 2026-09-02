@@ -1730,6 +1730,54 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      commit_simulation_event: {
+        Args: {
+          _actor_id: string
+          _app_release?: string
+          _expected_sequence: number
+          _foundation_version: string
+          _kind: string
+          _model_config_id: string
+          _model_identifier: string
+          _model_provider: string
+          _prior_state: Json
+          _resulting_state: Json
+          _session_id: string
+          _state_update: Json
+          _user_action: string
+          _visible_response: Json
+        }
+        Returns: {
+          app_release: string | null
+          created_at: string
+          error_message: string | null
+          foundation_version: string
+          id: string
+          kind: string
+          latency_ms: number | null
+          model_config_id: string | null
+          model_identifier: string | null
+          model_provider: string | null
+          organization_id: string | null
+          owner_id: string
+          prior_state: Json | null
+          resulting_state: Json | null
+          scenario_id: string
+          scenario_version_id: string
+          sequence: number
+          session_id: string
+          state_update: Json | null
+          status: string
+          user_action: string | null
+          visible_response: Json | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "simulation_events"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       commit_simulation_turn: {
         Args: {
           _app_release?: string

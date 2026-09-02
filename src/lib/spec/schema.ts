@@ -85,8 +85,17 @@ export type Participant = z.infer<typeof ParticipantSchema>;
 export type Relationship = z.infer<typeof RelationshipSchema>;
 export type OpeningMoment = z.infer<typeof OpeningMomentSchema>;
 
+export const SceneSchema = z.object({
+  label: z.string().default(""),
+  description: z.string().default(""),
+});
+export type Scene = z.infer<typeof SceneSchema>;
+
 export const SimStateSchema = z.object({
   active_participants: z.array(z.string()).default([]),
+  /** The cast is fixed at publication; this records who is present in the current scene. */
+  present_participants: z.array(z.string()).default([]),
+  scene: SceneSchema.default({ label: "", description: "" }),
   unresolved: z.array(z.string()).default([]),
   participation: z.array(z.string()).default([]),
   relationship_changes: z.array(z.string()).default([]),
@@ -94,6 +103,14 @@ export const SimStateSchema = z.object({
   latent: z.array(z.string()).default([]),
 });
 export type SimState = z.infer<typeof SimStateSchema>;
+
+export const SCENE_PRESETS = [
+  "Later the same day",
+  "Hallway right after class",
+  "The next class period",
+  "A meeting after school",
+  "A family conference",
+] as const;
 
 export const VisibleResponseSchema = z.object({
   voices: z.array(VoiceSchema).default([]),
@@ -116,6 +133,30 @@ export const TurnOutputSchema = z.object({
 });
 export type TurnOutput = z.infer<typeof TurnOutputSchema>;
 
+/** Applies semantic constraints that JSON shape validation cannot express. */
+export function validateScenarioSpec(spec: ScenarioSpec, expectedStudentCount = spec.student_count): ScenarioSpec {
+  const students = spec.participants.filter((participant) => participant.role.toLowerCase().includes("student"));
+  if (spec.student_count !== expectedStudentCount || students.length !== expectedStudentCount) {
+    throw new Error(`The scenario must contain exactly ${expectedStudentCount} student participants.`);
+  }
+  const names = spec.participants.map((participant) => participant.name.trim().toLowerCase());
+  if (new Set(names).size !== names.length) throw new Error("Each published participant must have a unique name.");
+  if (spec.opening_moment.voices.some((voice) => !spec.participants.some((participant) => participant.name === voice.name))) {
+    throw new Error("The opening moment includes a voice outside the published cast.");
+  }
+  return spec;
+}
+
+export function validateTurnOutput(output: TurnOutput, presentParticipants: Set<string>): TurnOutput {
+  if (output.visible_response.voices.length < 1 || output.visible_response.voices.length > 3) {
+    throw new Error("A room response must contain between one and three voices.");
+  }
+  if (output.visible_response.voices.some((voice) => !presentParticipants.has(voice.name))) {
+    throw new Error("A room response included someone who is not present in the current scene.");
+  }
+  return output;
+}
+
 export const ReviewSchema = z.object({
   strengths_observed: z.array(z.string()).default([]),
   growth_opportunities: z.array(z.string()).default([]),
@@ -135,6 +176,8 @@ export function applyStateUpdate(state: SimState, update: StateUpdate): SimState
   const merge = (a: string[], b: string[]) => Array.from(new Set([...a, ...b]));
   return {
     active_participants: state.active_participants,
+    present_participants: state.present_participants,
+    scene: state.scene,
     relationship_changes: merge(state.relationship_changes, update.relationship_changes),
     participation: merge(state.participation, update.participation_changes),
     revealed: merge(state.revealed, update.newly_revealed),

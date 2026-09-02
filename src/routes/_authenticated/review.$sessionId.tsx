@@ -81,7 +81,7 @@ function ReviewDetail() {
   }
 
   const data = sessionQuery.data;
-  const turns = data.events.filter((e: SessionEvent) => e.user_action);
+  const turns = data.events.filter((e: SessionEvent) => e.kind === "turn");
   const consequential = turns.filter((e) => changeTags(e.state_update).length > 0);
   const review = data.session.review;
 
@@ -154,11 +154,11 @@ function ReviewDetail() {
         )}
       </Section>
 
-      <Section title="2 · Moments that mattered" description="Turns where something in the room actually shifted.">
-        {consequential.length ? (
-          <ol className="space-y-4">
-            {consequential.map((e, i) => (
-              <li key={e.id} className="rounded-sm border border-border p-4">
+       <Section title="2 · Moments that mattered" description="Turns where something in the room actually shifted.">
+         {consequential.length ? (
+           <ol className="space-y-4">
+             {consequential.map((e, i) => (
+               <li key={e.id} className="rounded-sm border border-border p-4">
                 <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   Moment {i + 1} · your move
                 </p>
@@ -183,32 +183,35 @@ function ReviewDetail() {
       >
         {showAll ? (
           <ol className="space-y-6">
-            {data.events.map((e: SessionEvent) => (
-              <li key={e.id} className="border-l-2 border-border pl-5">
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  {e.user_action ? "Your move" : "Opening moment"}
-                </p>
-                {e.user_action && <p className="mt-1 text-base leading-relaxed text-primary">{e.user_action}</p>}
-                {e.visible_response && (
-                  <>
-                    <p className="mt-4 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      What happened
-                    </p>
-                    <p className="mt-1 whitespace-pre-line text-[0.98rem] leading-7 text-foreground">
-                      {renderVisibleResponse(e.visible_response).replace("\n\nWhat do you do next?", "")}
-                    </p>
-                  </>
-                )}
-                {changeTags(e.state_update).length > 0 && (
-                  <>
-                    <p className="mt-4 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                      What changed
-                    </p>
-                    <ChangeList tags={changeTags(e.state_update)} />
-                  </>
-                )}
-              </li>
-            ))}
+             {data.events.map((e: SessionEvent) => (
+               <li key={e.id} className="border-l-2 border-border pl-5">
+                 {e.kind === "scene_change" ? (
+                   <div className="bg-muted/50 p-4">
+                     <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Scene change</p>
+                     <p className="mt-1 text-sm font-medium text-primary">{e.resulting_state?.scene.label || "Scene updated"}</p>
+                     {e.resulting_state?.scene.description && <p className="mt-1 text-sm text-muted-foreground">{e.resulting_state.scene.description}</p>}
+                     <p className="mt-2 text-xs text-muted-foreground">Present: {(e.resulting_state?.present_participants ?? []).join(", ") || "—"}</p>
+                   </div>
+                 ) : (
+                   <>
+                     <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{e.user_action ? "Your move" : "Opening moment"}</p>
+                     {e.user_action && <p className="mt-1 text-base leading-relaxed text-primary">{e.user_action}</p>}
+                     {e.visible_response && (
+                       <>
+                         <p className="mt-4 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">What happened</p>
+                         <p className="mt-1 whitespace-pre-line text-[0.98rem] leading-7 text-foreground">{renderVisibleResponse(e.visible_response).replace("\n\nWhat do you do next?", "")}</p>
+                       </>
+                     )}
+                     {changeTags(e.state_update).length > 0 && (
+                       <>
+                         <p className="mt-4 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">What changed</p>
+                         <ChangeList tags={changeTags(e.state_update)} />
+                       </>
+                     )}
+                   </>
+                 )}
+               </li>
+             ))}
           </ol>
         ) : (
           <p className="text-sm text-muted-foreground">

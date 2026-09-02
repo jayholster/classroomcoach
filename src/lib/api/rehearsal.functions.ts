@@ -7,6 +7,7 @@ import {
   TurnOutputSchema,
   applyStateUpdate,
   renderVisibleResponse,
+  validateTurnOutput,
   type ScenarioSpec,
   type ReviewSynthesis,
   type SimState,
@@ -41,6 +42,8 @@ const EVENT_COLUMNS =
 function initialState(spec: ScenarioSpec): SimState {
   return SimStateSchema.parse({
     active_participants: spec.participants.map((p) => p.name),
+    present_participants: spec.participants.map((p) => p.name),
+    scene: { label: spec.setting.label, description: spec.setting.description },
     unresolved: spec.conditions.starting_moment ? [spec.conditions.starting_moment] : [],
     participation: [],
     relationship_changes: [],
@@ -275,7 +278,13 @@ export const submitRehearsalTurn = createServerFn({ method: "POST" })
       return { ok: false as const, error: result.error, retryable: result.retryable };
     }
 
-    const output = result.value;
+    const present = new Set(state.present_participants.length ? state.present_participants : spec.participants.map((participant) => participant.name));
+    let output;
+    try {
+      output = validateTurnOutput(result.value, present);
+    } catch (validationError) {
+      return { ok: false as const, error: (validationError as Error).message, retryable: false };
+    }
     const stateUpdate = {
       relationship_changes: output.state_update.relationship_changes ?? [],
       participation_changes: output.state_update.participation_changes ?? [],
@@ -290,9 +299,11 @@ export const submitRehearsalTurn = createServerFn({ method: "POST" })
     // commit function is security-definer and intentionally callable only by
     // the server-side privileged client, so the browser cannot invoke it.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: committed, error: commitError } = await supabaseAdmin.rpc("commit_simulation_turn", {
+    const { data: committed, error: commitError } = await supabaseAdmin.rpc("commit_simulation_event", {
       _session_id: data.sessionId,
+      _actor_id: context.userId,
       _expected_sequence: expectedSequence,
+      _kind: "turn",
       _user_action: data.action,
       _visible_response: output.visible_response as never,
       _state_update: stateUpdate as never,
@@ -326,6 +337,68 @@ export const submitRehearsalTurn = createServerFn({ method: "POST" })
     };
   });
 
+
+export const changeScene = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { sessionId: string; label: string; description?: string; presentParticipants: string[] }) => {
+    const label = input.label.trim();
+    const description = (input.description ?? "").trim();
+    const presentParticipants = Array.from(new Set(input.presentParticipants.map((name) => name.trim()).filter(Boolean)));
+    if (label.length < 2 || label.length > 120) throw new Error("Give the new scene a short name between 2 and 120 characters.");
+    if (description.length > 500) throw new Error("Keep the scene note under 500 characters.");
+    if (!presentParticipants.length) throw new Error("Keep at least one person present in the new scene.");
+    return { sessionId: input.sessionId, label, description, presentParticipants };
+  })
+  .handler(async ({ data, context }) => {
+    const { appRelease } = await import("../server/env.server");
+    const { data: sessionRow } = await context.supabase
+      .from("rehearsal_sessions")
+      .select("id, scenario_id, scenario_version_id, ended_at, organization_id")
+      .eq("id", data.sessionId)
+      .maybeSingle();
+    const session = sessionRow as unknown as {
+      id: string;
+      scenario_id: string;
+      scenario_version_id: string;
+      ended_at: string | null;
+      organization_id: string | null;
+    } | null;
+    if (!session) throw new Error("Rehearsal not found.");
+    if (session.ended_at) throw new Error("This rehearsal has already ended.");
+
+    const [{ data: versionRow }, { data: stateRow }, { data: eventRows }] = await Promise.all([
+      context.supabase.from("scenario_versions").select("spec, foundation_version, model_config_id").eq("id", session.scenario_version_id).maybeSingle(),
+      context.supabase.from("simulation_states").select("state").eq("session_id", data.sessionId).maybeSingle(),
+      context.supabase.from("simulation_events").select("sequence").eq("session_id", data.sessionId).order("sequence"),
+    ]);
+    const spec = ScenarioSpecSchema.parse((versionRow as { spec?: unknown } | null)?.spec ?? {});
+    const state = SimStateSchema.parse((stateRow as { state?: unknown } | null)?.state ?? {});
+    const cast = new Set(spec.participants.map((participant) => participant.name));
+    if (data.presentParticipants.some((name) => !cast.has(name))) {
+      throw new Error("Only people from the published cast can be present in a scene.");
+    }
+    const nextState = { ...state, scene: { label: data.label, description: data.description }, present_participants: data.presentParticipants };
+    const expectedSequence = ((eventRows ?? []) as unknown as { sequence: number }[]).at(-1)?.sequence ?? -1;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: committed, error } = await supabaseAdmin.rpc("commit_simulation_event", {
+      _session_id: data.sessionId,
+      _actor_id: context.userId,
+      _expected_sequence: expectedSequence + 1,
+      _kind: "scene_change",
+      _user_action: `Scene changed to ${data.label}${data.description ? ` — ${data.description}` : ""}`,
+      _visible_response: null as never,
+      _state_update: { scene: nextState.scene, present_participants: data.presentParticipants } as never,
+      _resulting_state: nextState as never,
+      _foundation_version: (versionRow as { foundation_version?: string } | null)?.foundation_version ?? "",
+      _model_provider: "classroom_coach",
+      _model_identifier: "scene_change",
+      _model_config_id: ((versionRow as { model_config_id?: string | null } | null)?.model_config_id ?? undefined) as unknown as string,
+      _prior_state: state as never,
+      _app_release: appRelease(),
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true as const, event: committed as unknown as SessionEvent, state: nextState };
+  });
 
 export const endRehearsal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

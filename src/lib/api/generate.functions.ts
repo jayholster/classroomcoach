@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-import { ScenarioSpecSchema } from "../spec/schema";
+import { ScenarioSpecSchema, validateScenarioSpec } from "../spec/schema";
 
 /**
  * Calls the configured model to derive a structured scenario specification
@@ -80,7 +80,14 @@ export const generateStructuredScenario = createServerFn({ method: "POST" })
       return { ok: false as const, error: result.error, retryable: result.retryable };
     }
 
-    const spec = result.value;
+    let spec;
+    try {
+      spec = validateScenarioSpec(result.value, scenario.student_count);
+    } catch (validationError) {
+      const message = (validationError as Error).message;
+      await context.supabase.from("scenarios").update({ generation_error: message, status: "Needs Review" }).eq("id", data.scenarioId);
+      return { ok: false as const, error: message, retryable: false };
+    }
     await context.supabase
       .from("scenarios")
       .update({

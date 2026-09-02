@@ -4,12 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell, Chip, Drawer, btn, btnPrimary, input } from "@/components/AppShell";
 import {
+  changeScene,
   endRehearsal,
   flagEvent,
   getRehearsalSession,
   submitRehearsalTurn,
   type SessionEvent,
 } from "@/lib/api/rehearsal.functions";
+import { SCENE_PRESETS } from "@/lib/spec/schema";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 
 const FLAG_REASONS = [
@@ -41,6 +43,12 @@ function RehearsePage() {
   const submit = useServerFn(submitRehearsalTurn);
   const finish = useServerFn(endRehearsal);
   const flag = useServerFn(flagEvent);
+  const moveScene = useServerFn(changeScene);
+
+  const [showScene, setShowScene] = useState(false);
+  const [sceneLabel, setSceneLabel] = useState("");
+  const [sceneDescription, setSceneDescription] = useState("");
+  const [presentParticipants, setPresentParticipants] = useState<string[]>([]);
 
   const sessionQuery = useQuery({
     queryKey: ["rehearsal", id],
@@ -94,12 +102,17 @@ function RehearsePage() {
     if (!text.trim() || busy) return;
     setBusy(true);
     setError(null);
-    const action = text.trim();
-    const result = await submit({ data: { sessionId: id, action } });
-    if (!result.ok) setError(result.error);
-    else setText("");
-    await sessionQuery.refetch();
-    setBusy(false);
+    try {
+      const action = text.trim();
+      const result = await submit({ data: { sessionId: id, action } });
+      if (!result.ok) setError(result.error);
+      else setText("");
+      await sessionQuery.refetch();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const end = async () => {
@@ -107,7 +120,35 @@ function RehearsePage() {
     navigate({ to: "/review/$sessionId", params: { sessionId: id } });
   };
 
-  const turnCount = data.events.filter((e: SessionEvent) => Boolean(e.user_action)).length;
+  const turnCount = data.events.filter((e: SessionEvent) => e.kind === "turn").length;
+  const currentPresent = data.state.present_participants.length
+    ? data.state.present_participants
+    : data.spec.participants.map((participant) => participant.name);
+
+  const saveScene = async () => {
+    if (!sceneLabel.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await moveScene({
+        data: {
+          sessionId: id,
+          label: sceneLabel,
+          description: sceneDescription,
+          presentParticipants: presentParticipants.length ? presentParticipants : currentPresent,
+        },
+      });
+      setShowScene(false);
+      setSceneLabel("");
+      setSceneDescription("");
+      setPresentParticipants([]);
+      await sessionQuery.refetch();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <AppShell>
@@ -117,20 +158,42 @@ function RehearsePage() {
             <div>
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Rehearsal in progress</p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight text-primary">
-                {data.spec.setting.label || data.session.scenario_title}
+                {data.state.scene.label || data.spec.setting.label || data.session.scenario_title}
               </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {data.state.scene.description || data.spec.setting.description || "The current scene"}
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 You are the {data.spec.practicing_role} · {turnCount} {turnCount === 1 ? "turn" : "turns"} so far
               </p>
             </div>
-            <div className="flex gap-2">
-              <Chip>{data.versionLabel}</Chip>
-              {ended && <Chip tone="warn">Ended</Chip>}
-            </div>
+             <div className="flex flex-wrap gap-2">
+               <Chip>{data.versionLabel}</Chip>
+               <Chip>{currentPresent.length} present</Chip>
+               {ended && <Chip tone="warn">Ended</Chip>}
+             </div>
           </div>
 
-          <div
-            className="panel mt-6 divide-y divide-border"
+           <div className="mt-5 border-y border-border py-4">
+             <div className="flex flex-wrap items-center justify-between gap-3">
+               <div>
+                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Who’s in the room</p>
+                 <p className="mt-1 text-xs text-muted-foreground">The published cast stays fixed. Change who is present only when you change the scene.</p>
+               </div>
+               {!ended && <button className={btn} type="button" onClick={() => { setSceneLabel(""); setSceneDescription(""); setPresentParticipants(currentPresent); setShowScene(true); }}>Change the scene</button>}
+             </div>
+             <div className="mt-3 flex flex-wrap gap-2">
+               {data.spec.participants.map((participant) => (
+                 <Chip key={participant.id} tone={currentPresent.includes(participant.name) ? "accent" : "default"}>
+                   {participant.name} · {participant.role}
+                   {currentPresent.includes(participant.name) ? "" : " · away"}
+                 </Chip>
+               ))}
+             </div>
+           </div>
+
+           <div
+             className="panel mt-6 divide-y divide-border"
             role="log"
             aria-live="polite"
             aria-label="Rehearsal transcript"
@@ -141,9 +204,21 @@ function RehearsePage() {
               </div>
             )}
             {data.events.map((e: SessionEvent, index: number) => (
+              e.kind === "scene_change" ? (
+                <div key={e.id} className="bg-muted/50 p-5 sm:p-6">
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Scene change</p>
+                  <p className="mt-1 text-sm font-medium text-primary">{e.resulting_state?.scene.label}</p>
+                  {e.resulting_state?.scene.description && (
+                    <p className="mt-1 text-sm text-muted-foreground">{e.resulting_state.scene.description}</p>
+                  )}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Present: {(e.resulting_state?.present_participants ?? []).join(", ") || "—"}
+                  </p>
+                </div>
+              ) : (
               <div key={e.id} className="p-5 sm:p-6">
                 <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  Turn {index + 1}
+                  Turn {e.sequence}
                 </p>
                 {e.user_action && (
                   <Message from="user" className="max-w-[92%] gap-1">
@@ -194,6 +269,7 @@ function RehearsePage() {
                   </Message>
                 )}
               </div>
+              )
             ))}
             <div ref={endRef} />
           </div>
@@ -281,9 +357,73 @@ function RehearsePage() {
       </div>
 
 
+      {showScene && (
+        <Drawer title="Change the scene" onClose={() => setShowScene(false)}>
+          <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+            The same people carry everything that has happened so far. Only the place, time, and who is in the room change.
+          </p>
+          <label className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground" htmlFor="scene-label">
+            New scene
+          </label>
+          <input
+            id="scene-label"
+            className={`${input} mt-1`}
+            list="scene-presets"
+            placeholder="Later the same day"
+            value={sceneLabel}
+            onChange={(e) => setSceneLabel(e.target.value)}
+          />
+          <datalist id="scene-presets">
+            {SCENE_PRESETS.map((preset) => (
+              <option key={preset} value={preset} />
+            ))}
+          </datalist>
+          <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground" htmlFor="scene-note">
+            What has changed (optional)
+          </label>
+          <textarea
+            id="scene-note"
+            className={`${input} mt-1`}
+            rows={3}
+            placeholder="The bell has rung and the room has emptied out."
+            value={sceneDescription}
+            onChange={(e) => setSceneDescription(e.target.value)}
+          />
+          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Who is present</p>
+          <div className="mt-2 space-y-2">
+            {data.spec.participants.map((participant) => (
+              <label key={participant.id} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={presentParticipants.includes(participant.name)}
+                  onChange={(e) =>
+                    setPresentParticipants((prev) =>
+                      e.target.checked ? [...prev, participant.name] : prev.filter((name) => name !== participant.name),
+                    )
+                  }
+                />
+                <span>
+                  {participant.name} <span className="text-muted-foreground">· {participant.role}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <button
+            type="button"
+            className={`${btnPrimary} mt-5`}
+            disabled={busy || !sceneLabel.trim() || presentParticipants.length === 0}
+            onClick={() => void saveScene()}
+          >
+            {busy ? "Changing scene…" : "Change the scene"}
+          </button>
+        </Drawer>
+      )}
+
       {showState && (
         <Drawer title="Current simulation state" onClose={() => setShowState(false)}>
-          <StateList label="Active participants" items={data.state.active_participants} />
+          <StateList label="Current scene" items={[data.state.scene.label, data.state.scene.description].filter(Boolean)} />
+          <StateList label="Present in the room" items={currentPresent} />
+          <StateList label="Full cast" items={data.state.active_participants} />
           <StateList label="Unresolved" items={data.state.unresolved} />
           <StateList label="Participation changes" items={data.state.participation} />
           <StateList label="Relationship changes" items={data.state.relationship_changes} />
