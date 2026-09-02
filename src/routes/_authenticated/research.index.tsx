@@ -67,106 +67,100 @@ function ResearchHome() {
           title="Dataset workspaces"
           description="Choose a workspace to build, preview, and export a pseudonymous dataset. Assurance evidence is available inside each workspace."
         >
-            <Section
-              title="Dataset workspaces"
-              description="Each workspace holds its own scope, sessions, event explorer and dataset builder."
-            >
-              {query.isLoading && <p className="text-sm text-muted-foreground">Loading workspaces…</p>}
-              {query.error && (
-                <p role="alert" className="text-sm text-destructive">
-                  {(query.error as Error).message}
-                </p>
-              )}
-              {query.data && query.data.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No dataset workspace yet.{" "}
-                  {meQuery.data?.isOrgAdmin
-                    ? "Open one below to start building datasets from your organization's rehearsals."
-                    : "An organization administrator can grant you access to one."}
-                </p>
-              )}
-              <ul className="divide-y divide-border">
-                {(query.data ?? []).map((p) => (
-                  <li key={p.id} className="flex flex-wrap items-start justify-between gap-4 py-4">
-                    <div className="min-w-0">
-                      <Link
-                        to="/research/$projectId"
-                        params={{ projectId: p.id }}
-                        className="text-sm font-medium text-primary hover:underline"
-                      >
-                        {p.name}
-                      </Link>
-                      <p className="mt-1 text-sm text-muted-foreground">{p.description || "No description recorded."}</p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        <Chip>{p.status}</Chip>
-                        {p.scopeLabels.map((label) => (
-                          <Chip key={label} tone="accent">
-                            {label}
-                          </Chip>
-                        ))}
-                      </div>
-                    </div>
-                    <Link to="/research/$projectId" params={{ projectId: p.id }} className={btn}>
-                      Open dataset builder
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </Section>
-
-            {meQuery.data?.isOrgAdmin && (
-              <Section
-                title="New dataset workspace"
-                description="Administrators can open a workspace over their own organization's rehearsals. Exported data stays pseudonymous."
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="text-sm text-foreground" htmlFor="workspace-name">
-                      Workspace name
-                    </label>
-                    <input
-                      id="workspace-name"
-                      className={`${input} mt-2`}
-                      value={name}
-                      placeholder="Responding to conflict — Spring cohort"
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-foreground" htmlFor="workspace-description">
-                      What is being examined? <span className="text-muted-foreground">(optional)</span>
-                    </label>
-                    <input
-                      id="workspace-description"
-                      className={`${input} mt-2`}
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                    />
-                  </div>
-                </div>
-                {error && (
-                  <p role="alert" className="mt-3 text-sm text-destructive">
-                    {error}
-                  </p>
-                )}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button className={btnPrimary} disabled={busy || !name.trim()} onClick={() => void create()}>
-                    {busy ? "Opening workspace…" : "OPEN DATASET WORKSPACE"}
-                  </button>
-                  <button
-                    className={btn}
-                    disabled={busy}
-                    onClick={() => void create(`All rehearsals — ${new Date().toLocaleDateString()}`)}
+          {query.isLoading && <p className="text-sm text-muted-foreground">Loading workspaces…</p>}
+          {query.error && (
+            <p role="alert" className="text-sm text-destructive">
+              {(query.error as Error).message}
+            </p>
+          )}
+          {query.data && query.data.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              No dataset workspace yet.{" "}
+              {meQuery.data?.isOrgAdmin
+                ? "Open one below to start building datasets from your organization's rehearsals."
+                : "An organization administrator can grant you access to one."}
+            </p>
+          )}
+          <ul className="divide-y divide-border">
+            {(query.data ?? []).map((p) => (
+              <li key={p.id} className="flex flex-wrap items-start justify-between gap-4 py-4">
+                <div className="min-w-0">
+                  <Link
+                    to="/research/$projectId"
+                    params={{ projectId: p.id }}
+                    className="text-sm font-medium text-primary hover:underline"
                   >
-                    Quick workspace over all rehearsals
-                  </button>
-                  <button className={btn} onClick={() => void query.refetch()} disabled={busy}>
-                    Refresh
-                  </button>
+                    {p.name}
+                  </Link>
+                  <p className="mt-1 text-sm text-muted-foreground">{p.description || "No description recorded."}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <Chip>{p.status}</Chip>
+                    {p.scopeLabels.map((label) => (
+                      <Chip key={label} tone="accent">
+                        {label}
+                      </Chip>
+                    ))}
+                  </div>
                 </div>
-              </Section>
+                <Link to="/research/$projectId" params={{ projectId: p.id }} className={btn}>
+                  Open dataset builder
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Section>
+
+        {meQuery.data?.isOrgAdmin && (
+          <Section
+            title="New dataset workspace"
+            description="Administrators can open a workspace over their own organization's rehearsals. Exported data stays pseudonymous."
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="text-sm text-foreground" htmlFor="workspace-name">
+                  Workspace name
+                </label>
+                <input
+                  id="workspace-name"
+                  className={`${input} mt-2`}
+                  value={name}
+                  placeholder="Responding to conflict — Spring cohort"
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm text-foreground" htmlFor="workspace-description">
+                  What is being examined? <span className="text-muted-foreground">(optional)</span>
+                </label>
+                <input
+                  id="workspace-description"
+                  className={`${input} mt-2`}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+            </div>
+            {error && (
+              <p role="alert" className="mt-3 text-sm text-destructive">
+                {error}
+              </p>
             )}
-          </>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button className={btnPrimary} disabled={busy || !name.trim()} onClick={() => void create()}>
+                {busy ? "Opening workspace…" : "OPEN DATASET WORKSPACE"}
+              </button>
+              <button
+                className={btn}
+                disabled={busy}
+                onClick={() => void create(`All rehearsals — ${new Date().toLocaleDateString()}`)}
+              >
+                Quick workspace over all rehearsals
+              </button>
+              <button className={btn} onClick={() => void query.refetch()} disabled={busy}>
+                Refresh
+              </button>
+            </div>
+          </Section>
         )}
       </div>
     </AppShell>
