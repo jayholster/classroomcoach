@@ -1,20 +1,31 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { appConfig, isProduction } from "@/lib/config";
+import { getMe } from "@/lib/api/admin.functions";
 
 const NAV = [
-  { to: "/library", label: "Library" },
-  { to: "/design", label: "Design Lab" },
-  { to: "/rehearse", label: "Rehearse" },
-  { to: "/review", label: "Review" },
-  { to: "/assurance", label: "Assurance" },
+  { to: "/library", label: "Library", roles: ["educator", "admin"] },
+  { to: "/design", label: "Design Lab", roles: ["educator", "admin"] },
+  { to: "/rehearse", label: "Rehearse", roles: ["educator", "admin", "learner"] },
+  { to: "/review", label: "Review", roles: ["educator", "admin", "learner"] },
+  { to: "/assurance", label: "Assurance", roles: ["admin"] },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useAuth();
   const navigate = useNavigate();
+  const me = useServerFn(getMe);
+  const meQuery = useQuery({ queryKey: ["me"], queryFn: () => me(), enabled: Boolean(user), staleTime: 300_000 });
+
+  // Until roles load, show the full set an educator sees; the server and RLS
+  // remain the real gate, so a wrong guess here can never grant access.
+  const roles = meQuery.data?.roles ?? ["educator"];
+  const visibleNav = NAV.filter((n) => n.roles.some((r) => roles.includes(r)));
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -23,6 +34,18 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:text-primary-foreground"
+      >
+        Skip to main content
+      </a>
+      {!isProduction && (
+        <div className="bg-accent px-6 py-1.5 text-center text-xs text-accent-foreground">
+          {appConfig.environment === "staging" ? "Staging environment" : "Development environment"} — do not enter
+          information about real students.
+        </div>
+      )}
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-4 px-6 pt-6 pb-4">
           <div>
@@ -47,14 +70,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
           </div>
         </div>
-        <nav className="mx-auto flex max-w-6xl gap-6 px-6">
-          {NAV.map((n) => {
+        <nav aria-label="Primary" className="mx-auto flex max-w-6xl gap-6 px-6">
+          {visibleNav.map((n) => {
             const active = pathname.startsWith(n.to);
             return (
               <Link
                 key={n.to}
                 to={n.to}
-                className={`-mb-px border-b-2 pb-3 text-sm ${
+                aria-current={active ? "page" : undefined}
+                className={`-mb-px border-b-2 pb-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
                   active
                     ? "border-primary font-medium text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground"
@@ -66,7 +90,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-6 py-10">
+        {children}
+      </main>
       <footer className="mx-auto max-w-6xl px-6 pb-10 text-xs text-muted-foreground">
         Prototype — Penn State NSF Translation to Practice project. Not affiliated with official university branding.
       </footer>
@@ -124,10 +150,30 @@ export function Section({
 }
 
 export function Drawer({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      previous?.focus();
+    };
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-primary/20" onClick={onClose}>
       <div
-        className="h-full w-full max-w-md overflow-y-auto border-l border-border bg-card p-6"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
+        className="h-full w-full max-w-md overflow-y-auto border-l border-border bg-card p-6 outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-start justify-between gap-4">
