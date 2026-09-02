@@ -201,7 +201,7 @@ function DesignReview() {
               {sim.draft.relationships.map((r) => (
                 <li key={r.id} className="flex flex-wrap items-center gap-2">
                   <input
-                    className={`${input} w-32`}
+                    className={`${input} w-32!`}
                     value={r.a}
                     onChange={(e) =>
                       setDraft({
@@ -213,7 +213,7 @@ function DesignReview() {
                   />
                   <span className="text-muted-foreground">↔</span>
                   <input
-                    className={`${input} w-32`}
+                    className={`${input} w-32!`}
                     value={r.b}
                     onChange={(e) =>
                       setDraft({
@@ -224,7 +224,7 @@ function DesignReview() {
                     }
                   />
                   <select
-                    className={`${input} w-44`}
+                    className={`${input} w-44!`}
                     value={r.label}
                     onChange={(e) =>
                       setDraft({
@@ -238,7 +238,7 @@ function DesignReview() {
                     <option>Relationship</option>
                   </select>
                   <input
-                    className={`${input} w-40`}
+                    className={`${input} w-40!`}
                     value={r.value}
                     onChange={(e) =>
                       setDraft({
