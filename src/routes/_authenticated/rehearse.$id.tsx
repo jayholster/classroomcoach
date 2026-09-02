@@ -111,7 +111,12 @@ function RehearsePage() {
             </div>
           </div>
 
-          <div className="panel mt-6 divide-y divide-border">
+          <div
+            className="panel mt-6 divide-y divide-border"
+            role="log"
+            aria-live="polite"
+            aria-label="Rehearsal transcript"
+          >
             {data.events.map((e: SessionEvent) => (
               <div key={e.id}>
                 {e.user_action && (
@@ -123,7 +128,9 @@ function RehearsePage() {
                 {e.visible_response && (
                   <div className="flex items-start gap-3 p-5">
                     <button
+                      type="button"
                       title="Flag this response"
+                      aria-label="Flag this response for review"
                       className="mt-0.5 text-muted-foreground hover:text-destructive"
                       onClick={() => setFlagFor(e.id)}
                     >
@@ -146,7 +153,11 @@ function RehearsePage() {
             <div ref={endRef} />
           </div>
 
-          {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
+          {error && (
+            <p role="alert" className="mt-3 text-sm text-destructive">
+              {error}
+            </p>
+          )}
 
           {!ended && (
             <div className="mt-5">

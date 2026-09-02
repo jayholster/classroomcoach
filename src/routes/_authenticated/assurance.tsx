@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell, Chip, Drawer, Section, btn } from "@/components/AppShell";
+import { OperationsPanel } from "@/components/OperationsPanel";
 import {
   activateModelConfiguration,
   getMe,
@@ -152,6 +153,8 @@ function AssurancePage() {
           </p>
         )}
       </Section>
+
+      {isAdmin && <OperationsPanel />}
 
       {rerunResult && (
         <Drawer title="Re-run comparison" onClose={() => setRerunResult(null)}>

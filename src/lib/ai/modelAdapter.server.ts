@@ -9,6 +9,12 @@
  * Nothing in this file may be imported from client code.
  */
 
+export interface ModelUsageResult {
+  text: string;
+  inputTokens: number | null;
+  outputTokens: number | null;
+}
+
 export interface ModelConfig {
   id: string;
   name: string;
@@ -56,12 +62,14 @@ function describeStatus(status: number, body: string): string {
 }
 
 /** Reads an SSE stream from the Responses API and returns the accumulated text. */
-async function readResponsesStream(res: Response): Promise<string> {
+async function readResponsesStream(res: Response): Promise<ModelUsageResult> {
   const reader = res.body?.getReader();
   if (!reader) throw new ModelCallError("The AI service returned an empty response.", 502);
   const decoder = new TextDecoder();
   let buffer = "";
   let text = "";
+  let inputTokens: number | null = null;
+  let outputTokens: number | null = null;
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -76,23 +84,33 @@ async function readResponsesStream(res: Response): Promise<string> {
         const evt = JSON.parse(payload) as {
           type?: string;
           delta?: string;
-          response?: { output_text?: string };
+          response?: { output_text?: string; usage?: { input_tokens?: number; output_tokens?: number } };
         };
         if (evt.type === "response.output_text.delta" && typeof evt.delta === "string") text += evt.delta;
-        if (evt.type === "response.completed" && !text && evt.response?.output_text) {
-          text = evt.response.output_text;
+        if (evt.type === "response.completed") {
+          if (!text && evt.response?.output_text) text = evt.response.output_text;
+          if (evt.response?.usage) {
+            inputTokens = evt.response.usage.input_tokens ?? null;
+            outputTokens = evt.response.usage.output_tokens ?? null;
+          }
         }
       } catch {
         /* ignore malformed keep-alive frames */
       }
     }
   }
-  return text;
+  return { text, inputTokens, outputTokens };
 }
 
-async function callLovableResponses(config: ModelConfig, system: string, user: string): Promise<string> {
+async function callLovableResponses(
+  config: ModelConfig,
+  system: string,
+  user: string,
+  signal?: AbortSignal,
+): Promise<ModelUsageResult> {
   const res = await fetch(`${GATEWAY}/responses`, {
     method: "POST",
+    ...(signal ? { signal } : {}),
     headers: {
       "Content-Type": "application/json",
       "Lovable-API-Key": gatewayKey(),
@@ -122,7 +140,8 @@ async function callChatCompletions(
   baseUrl: string,
   apiKey: string,
   useGatewayHeader: boolean,
-): Promise<string> {
+  signal?: AbortSignal,
+): Promise<ModelUsageResult> {
   const body: Record<string, unknown> = {
     model: config.model,
     messages: [
@@ -136,6 +155,7 @@ async function callChatCompletions(
   }
   const res = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",
+    ...(signal ? { signal } : {}),
     headers: {
       "Content-Type": "application/json",
       ...(useGatewayHeader ? { "Lovable-API-Key": apiKey } : { Authorization: `Bearer ${apiKey}` }),
@@ -146,21 +166,35 @@ async function callChatCompletions(
     const text = await res.text();
     throw new ModelCallError(describeStatus(res.status, text), res.status);
   }
-  const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-  return json.choices?.[0]?.message?.content ?? "";
+  const json = (await res.json()) as {
+    choices?: { message?: { content?: string } }[];
+    usage?: { prompt_tokens?: number; completion_tokens?: number };
+  };
+  return {
+    text: json.choices?.[0]?.message?.content ?? "",
+    inputTokens: json.usage?.prompt_tokens ?? null,
+    outputTokens: json.usage?.completion_tokens ?? null,
+  };
 }
 
-/** Calls the configured model and returns raw text expected to contain JSON. */
-export async function callModelText(config: ModelConfig, system: string, user: string): Promise<string> {
+/** Calls the configured model and returns raw text plus token usage. */
+export async function callModelText(
+  config: ModelConfig,
+  system: string,
+  user: string,
+  signal?: AbortSignal,
+): Promise<ModelUsageResult> {
   if (config.provider_type === "openai_compatible") {
     const endpoint = config.endpoint;
     if (!endpoint) throw new ModelCallError("This model configuration has no endpoint URL.", 400);
-    const key = process.env["EXTERNAL_MODEL_API_KEY"];
+    const reference = (config as { credentials_reference?: string | null }).credentials_reference ?? null;
+    const { modelCredential } = await import("../server/env.server");
+    const key = modelCredential(reference) ?? process.env["EXTERNAL_MODEL_API_KEY"];
     if (!key) throw new ModelCallError("No credential is configured for the external model endpoint.", 401);
-    return callChatCompletions(config, system, user, endpoint, key, false);
+    return callChatCompletions(config, system, user, endpoint, key, false, signal);
   }
-  if (config.model.startsWith("openai/")) return callLovableResponses(config, system, user);
-  return callChatCompletions(config, system, user, GATEWAY, gatewayKey(), true);
+  if (config.model.startsWith("openai/")) return callLovableResponses(config, system, user, signal);
+  return callChatCompletions(config, system, user, GATEWAY, gatewayKey(), true, signal);
 }
 
 /** Extracts the first JSON object from a model response. */
@@ -185,12 +219,12 @@ export async function callModelJson(
   system: string,
   user: string,
 ): Promise<{ value: unknown; raw: string; repaired: boolean }> {
-  const raw = await callModelText(config, system, user);
+  const { text: raw } = await callModelText(config, system, user);
   try {
     return { value: extractJson(raw), raw, repaired: false };
   } catch {
     const repairPrompt = `Your previous reply was not valid JSON. Return the same content again as a single valid JSON object and nothing else.\n\nPrevious reply:\n${raw.slice(0, 6000)}`;
-    const second = await callModelText(config, system, repairPrompt);
+    const { text: second } = await callModelText(config, system, repairPrompt);
     return { value: extractJson(second), raw: second, repaired: true };
   }
 }

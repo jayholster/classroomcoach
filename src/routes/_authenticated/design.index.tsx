@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell, Section, btn, btnPrimary, input } from "@/components/AppShell";
+import { PRIVACY_REMINDER } from "@/lib/config";
 import { FoundationPanel } from "@/components/FoundationPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { createScenario } from "@/lib/api/scenarios.functions";
@@ -129,7 +130,15 @@ function DesignStart() {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-primary">What should someone practice?</h1>
+          <p id="privacy-reminder" className="mt-3 border-l-2 border-ring/40 bg-accent/40 px-3 py-2 text-xs text-muted-foreground">
+            {PRIVACY_REMINDER}
+          </p>
+          <label className="sr-only" htmlFor="practice-purpose">
+            What should someone practice?
+          </label>
           <textarea
+            id="practice-purpose"
+            aria-describedby="privacy-reminder"
             value={purpose}
             onChange={(e) => setPurpose(e.target.value)}
             rows={4}
