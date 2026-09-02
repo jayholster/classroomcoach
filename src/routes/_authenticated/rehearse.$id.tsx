@@ -86,7 +86,8 @@ function RehearsePage() {
   }
 
 
-  const data = sessionQuery.data!;
+  const data = sessionQuery.data;
+  if (!data) return null;
   const ended = Boolean(data.session.ended_at);
 
   const respond = async () => {
@@ -210,8 +211,11 @@ function RehearsePage() {
           </p>
           <p className="text-xs text-muted-foreground">
             {data.foundationVersion}
-            {data.events.find((e) => e.model_identifier)?.model_identifier
-              ? ` · ${data.events.find((e) => e.model_identifier)!.model_identifier}`
+            {data.events
+              .slice()
+              .reverse()
+              .find((e) => e.model_identifier)?.model_identifier
+              ? ` · ${data.events.slice().reverse().find((e) => e.model_identifier)?.model_identifier}`
               : ""}
           </p>
         </aside>
