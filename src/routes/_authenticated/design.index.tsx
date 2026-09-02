@@ -93,7 +93,7 @@ function DesignStart() {
 
   const fillExample = () => {
     const pool = EXAMPLES.filter((e) => e.purpose !== purpose);
-    const pick = pool[Math.floor(Math.random() * pool.length)] ?? EXAMPLES[0]!;
+    const pick = pool[Math.floor(Math.random() * pool.length)] ?? EXAMPLES[0];
     setPurpose(pick.purpose);
     setPractitioner(pick.practitioner);
     setSetting(pick.setting);
