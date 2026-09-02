@@ -264,6 +264,7 @@ function RehearsePage() {
                   </Message>
                 )}
               </div>
+              )
             ))}
             <div ref={endRef} />
           </div>
