@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReviewRouteImport } from './routes/review'
 import { Route as DesignIndexRouteImport } from './routes/design.index'
 import { Route as DesignIdRouteImport } from './routes/design.$id'
 import { Route as RehearseIndexRouteImport } from './routes/rehearse.index'
@@ -18,6 +19,11 @@ import { Route as RehearseIdRouteImport } from './routes/rehearse.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesignIndexRoute = DesignIndexRouteImport.update({
@@ -43,6 +49,7 @@ const RehearseIdRoute = RehearseIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/review': typeof ReviewRoute
   '/design/$id': typeof DesignIdRoute
   '/rehearse/$id': typeof RehearseIdRoute
   '/design/': typeof DesignIndexRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/review': typeof ReviewRoute
   '/design/$id': typeof DesignIdRoute
   '/rehearse/$id': typeof RehearseIdRoute
   '/design': typeof DesignIndexRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/review': typeof ReviewRoute
   '/design/$id': typeof DesignIdRoute
   '/rehearse/$id': typeof RehearseIdRoute
   '/design/': typeof DesignIndexRoute
@@ -65,12 +74,20 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/design/$id' | '/rehearse/$id' | '/design/' | '/rehearse/'
+  fullPaths:
+    | '/'
+    | '/review'
+    | '/design/$id'
+    | '/rehearse/$id'
+    | '/design/'
+    | '/rehearse/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/design/$id' | '/rehearse/$id' | '/design' | '/rehearse'
+  to:
+    '/' | '/review' | '/design/$id' | '/rehearse/$id' | '/design' | '/rehearse'
   id:
     | '__root__'
     | '/'
+    | '/review'
     | '/design/$id'
     | '/rehearse/$id'
     | '/design/'
@@ -79,6 +96,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ReviewRoute: typeof ReviewRoute
   DesignIdRoute: typeof DesignIdRoute
   RehearseIdRoute: typeof RehearseIdRoute
   DesignIndexRoute: typeof DesignIndexRoute
@@ -92,6 +110,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/design/': {
@@ -127,6 +152,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ReviewRoute: ReviewRoute,
   DesignIdRoute: DesignIdRoute,
   RehearseIdRoute: RehearseIdRoute,
   DesignIndexRoute: DesignIndexRoute,
