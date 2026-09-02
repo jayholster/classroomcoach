@@ -10,7 +10,7 @@ import {
   submitRehearsalTurn,
   type SessionEvent,
 } from "@/lib/api/rehearsal.functions";
-import { renderVisibleResponse } from "@/lib/spec/schema";
+import { Message, MessageContent } from "@/components/ai-elements/message";
 
 const FLAG_REASONS = [
   "Didn't fit the situation",
@@ -131,35 +131,54 @@ function RehearsePage() {
             aria-label="Rehearsal transcript"
           >
             {data.events.map((e: SessionEvent) => (
-              <div key={e.id}>
+              <div key={e.id} className="p-5 sm:p-6">
                 {e.user_action && (
-                  <div className="flex items-start gap-3 p-5">
-                    <span className="mt-0.5 text-xs uppercase tracking-wide text-muted-foreground">You</span>
-                    <p className="whitespace-pre-line text-sm leading-relaxed text-primary">{e.user_action}</p>
-                  </div>
+                  <Message from="user" className="max-w-[92%] gap-1">
+                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Your move</p>
+                    <MessageContent className="mt-1 rounded-sm border border-primary/15 bg-primary/5 px-4 py-3 text-primary shadow-none">
+                      <p className="whitespace-pre-line text-sm leading-relaxed">{e.user_action}</p>
+                    </MessageContent>
+                  </Message>
                 )}
                 {e.visible_response && (
-                  <div className="flex items-start gap-3 p-5">
-                    <button
-                      type="button"
-                      title="Flag this response"
-                      aria-label="Flag this response for review"
-                      className="mt-0.5 text-muted-foreground hover:text-destructive"
-                      onClick={() => setFlagFor(e.id)}
-                    >
-                      ⚑
-                    </button>
-                    <div>
-                      <p className="whitespace-pre-line text-sm leading-relaxed text-foreground">
-                        {renderVisibleResponse(e.visible_response)}
-                      </p>
+                  <Message from="assistant" className="mt-5 max-w-full gap-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">The room responds</p>
+                      <button
+                        type="button"
+                        title="Flag this response"
+                        aria-label="Flag this response for review"
+                        className="text-xs text-muted-foreground transition-colors hover:text-destructive"
+                        onClick={() => setFlagFor(e.id)}
+                      >
+                        Flag
+                      </button>
+                    </div>
+                    <MessageContent className="w-full max-w-none gap-4 px-0 py-0 text-foreground">
+                      <div className="space-y-4 border-l-2 border-ring/35 pl-4 sm:pl-5">
+                        {e.visible_response.voices.map((voice, voiceIndex) => (
+                          <div key={`${voice.name}-${voiceIndex}`}>
+                            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{voice.name}</span>
+                              {voice.cue && <span className="text-xs italic text-muted-foreground">{voice.cue}</span>}
+                            </div>
+                            {voice.line && <p className="mt-1 text-[0.98rem] leading-7 text-foreground">“{voice.line}”</p>}
+                          </div>
+                        ))}
+                        {e.visible_response.observation && (
+                          <div className="border-t border-border/70 pt-3">
+                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Scene beat</p>
+                            <p className="mt-1 text-sm italic leading-relaxed text-muted-foreground">{e.visible_response.observation}</p>
+                          </div>
+                        )}
+                      </div>
                       {e.state_update && e.state_update.relationship_changes.length > 0 && (
-                        <p className="mt-2 text-xs text-muted-foreground">
+                        <p className="border-t border-border pt-3 text-xs text-muted-foreground">
                           Recorded change: {e.state_update.relationship_changes.join("; ")}
                         </p>
                       )}
-                    </div>
-                  </div>
+                    </MessageContent>
+                  </Message>
                 )}
               </div>
             ))}
