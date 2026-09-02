@@ -153,7 +153,7 @@ export const getRehearsalSession = createServerFn({ method: "GET" })
         scenario_title: string;
         started_at: string;
         ended_at: string | null;
-        review: unknown;
+        review: Record<string, unknown> | null;
       },
       spec: ScenarioSpecSchema.parse((version as { spec?: unknown } | null)?.spec ?? {}),
       versionLabel: (version as { version_label?: string } | null)?.version_label ?? "",
