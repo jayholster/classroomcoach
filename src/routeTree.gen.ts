@@ -18,6 +18,7 @@ import { Route as AuthenticatedDesignIdRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedRehearseIndexRouteImport } from './routes/_authenticated/rehearse.index'
 import { Route as AuthenticatedRehearseIdRouteImport } from './routes/_authenticated/rehearse.$id'
 import { Route as AuthenticatedReviewIndexRouteImport } from './routes/_authenticated/review.index'
+import { Route as AuthenticatedReviewSessionIdRouteImport } from './routes/_authenticated/review.$sessionId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -66,6 +67,12 @@ const AuthenticatedReviewIndexRoute =
     path: '/review/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedReviewSessionIdRoute =
+  AuthenticatedReviewSessionIdRouteImport.update({
+    id: '/review/$sessionId',
+    path: '/review/$sessionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof AuthenticatedDesignIdRoute
   '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
+  '/review/$sessionId': typeof AuthenticatedReviewSessionIdRoute
   '/design/': typeof AuthenticatedDesignIndexRoute
   '/rehearse/': typeof AuthenticatedRehearseIndexRoute
   '/review/': typeof AuthenticatedReviewIndexRoute
@@ -83,6 +91,7 @@ export interface FileRoutesByTo {
   '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof AuthenticatedDesignIdRoute
   '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
+  '/review/$sessionId': typeof AuthenticatedReviewSessionIdRoute
   '/design': typeof AuthenticatedDesignIndexRoute
   '/rehearse': typeof AuthenticatedRehearseIndexRoute
   '/review': typeof AuthenticatedReviewIndexRoute
@@ -95,6 +104,7 @@ export interface FileRoutesById {
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/design/$id': typeof AuthenticatedDesignIdRoute
   '/_authenticated/rehearse/$id': typeof AuthenticatedRehearseIdRoute
+  '/_authenticated/review/$sessionId': typeof AuthenticatedReviewSessionIdRoute
   '/_authenticated/design/': typeof AuthenticatedDesignIndexRoute
   '/_authenticated/rehearse/': typeof AuthenticatedRehearseIndexRoute
   '/_authenticated/review/': typeof AuthenticatedReviewIndexRoute
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/design/$id'
     | '/rehearse/$id'
+    | '/review/$sessionId'
     | '/design/'
     | '/rehearse/'
     | '/review/'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/design/$id'
     | '/rehearse/$id'
+    | '/review/$sessionId'
     | '/design'
     | '/rehearse'
     | '/review'
@@ -128,6 +140,7 @@ export interface FileRouteTypes {
     | '/_authenticated/library'
     | '/_authenticated/design/$id'
     | '/_authenticated/rehearse/$id'
+    | '/_authenticated/review/$sessionId'
     | '/_authenticated/design/'
     | '/_authenticated/rehearse/'
     | '/_authenticated/review/'
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReviewIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/review/$sessionId': {
+      id: '/_authenticated/review/$sessionId'
+      path: '/review/$sessionId'
+      fullPath: '/review/$sessionId'
+      preLoaderRoute: typeof AuthenticatedReviewSessionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -211,6 +231,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedDesignIdRoute: typeof AuthenticatedDesignIdRoute
   AuthenticatedRehearseIdRoute: typeof AuthenticatedRehearseIdRoute
+  AuthenticatedReviewSessionIdRoute: typeof AuthenticatedReviewSessionIdRoute
   AuthenticatedDesignIndexRoute: typeof AuthenticatedDesignIndexRoute
   AuthenticatedRehearseIndexRoute: typeof AuthenticatedRehearseIndexRoute
   AuthenticatedReviewIndexRoute: typeof AuthenticatedReviewIndexRoute
@@ -220,6 +241,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedDesignIdRoute: AuthenticatedDesignIdRoute,
   AuthenticatedRehearseIdRoute: AuthenticatedRehearseIdRoute,
+  AuthenticatedReviewSessionIdRoute: AuthenticatedReviewSessionIdRoute,
   AuthenticatedDesignIndexRoute: AuthenticatedDesignIndexRoute,
   AuthenticatedRehearseIndexRoute: AuthenticatedRehearseIndexRoute,
   AuthenticatedReviewIndexRoute: AuthenticatedReviewIndexRoute,
