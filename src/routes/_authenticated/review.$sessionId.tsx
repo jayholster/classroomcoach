@@ -81,7 +81,7 @@ function ReviewDetail() {
   }
 
   const data = sessionQuery.data;
-  const turns = data.events.filter((e: SessionEvent) => e.user_action);
+  const turns = data.events.filter((e: SessionEvent) => e.kind === "turn");
   const consequential = turns.filter((e) => changeTags(e.state_update).length > 0);
   const review = data.session.review;
 

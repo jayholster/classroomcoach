@@ -180,6 +180,7 @@ export const getResearchSession = createServerFn({ method: "POST" })
       },
       events: (events ?? []).map((event) => ({
         id: String((event as { id: string }).id),
+        kind: String((event as { kind?: string }).kind ?? "turn"),
         sequence: Number((event as { sequence: number }).sequence),
         created_at: String((event as { created_at: string }).created_at),
         user_action: (event as { user_action: string | null }).user_action,
