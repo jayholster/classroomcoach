@@ -45,7 +45,9 @@ function RehearsePage() {
   const sessionQuery = useQuery({
     queryKey: ["rehearsal", id],
     queryFn: () => fetchSession({ data: { sessionId: id } }),
+    retry: false,
   });
+
 
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
