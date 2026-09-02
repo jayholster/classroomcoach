@@ -45,7 +45,9 @@ function RehearsePage() {
   const sessionQuery = useQuery({
     queryKey: ["rehearsal", id],
     queryFn: () => fetchSession({ data: { sessionId: id } }),
+    retry: false,
   });
+
 
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -66,13 +68,23 @@ function RehearsePage() {
       </AppShell>
     );
   }
-  if (sessionQuery.error) {
+  if (sessionQuery.error || !sessionQuery.data) {
     return (
       <AppShell>
-        <p className="text-sm text-destructive">{(sessionQuery.error as Error).message}</p>
+        <div className="max-w-lg space-y-3">
+          <h1 className="text-lg font-semibold">This rehearsal is no longer available</h1>
+          <p className="text-sm text-muted-foreground">
+            {(sessionQuery.error as Error | null)?.message ??
+              "The rehearsal may have been removed, or the link belongs to another account."}
+          </p>
+          <button type="button" className={btn} onClick={() => navigate({ to: "/rehearse" })}>
+            Back to rehearsals
+          </button>
+        </div>
       </AppShell>
     );
   }
+
 
   const data = sessionQuery.data!;
   const ended = Boolean(data.session.ended_at);
