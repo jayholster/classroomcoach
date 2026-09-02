@@ -61,10 +61,14 @@ function DesignStart() {
   const finalize = useServerFn(finalizeDocument);
 
   const [focus, setFocus] = useState("");
-  const [practitioner, setPractitioner] = useState(ROLES[0]);
-  const [setting, setSetting] = useState(SETTINGS[0]);
+  const [customFocus, setCustomFocus] = useState("");
+  const [practitioner, setPractitioner] = useState(ROLES[0] ?? "");
+  const [setting, setSetting] = useState(SETTINGS[0] ?? "");
   const [studentCount, setStudentCount] = useState<number>(2);
   const [difficultMoment, setDifficultMoment] = useState("");
+  const [customMoment, setCustomMoment] = useState("");
+  const [others, setOthers] = useState<string[]>([]);
+  const [customOther, setCustomOther] = useState("");
   const [specifics, setSpecifics] = useState("");
   const [files, setFiles] = useState<PendingFile[]>([]);
   const [dragging, setDragging] = useState(false);
