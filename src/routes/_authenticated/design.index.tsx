@@ -252,3 +252,14 @@ function ChoiceCard({ selected, onClick, title, description }: { selected: boole
 function SelectField({ id, label, value, onChange, options }: { id: string; label: string; value: string; onChange: (value: string) => void; options: string[] }) {
   return <div><label className="text-sm text-foreground" htmlFor={id}>{label}</label><select id={id} value={value} onChange={(event) => onChange(event.target.value)} className={`${input} mt-2`} >{options.map((option) => <option key={option} value={option}>{option}</option>)}</select></div>;
 }
+
+function ComboField({ id, label, value, onChange, options }: { id: string; label: string; value: string; onChange: (value: string) => void; options: string[] }) {
+  const listId = `${id}-options`;
+  return (
+    <div>
+      <label className="text-sm text-foreground" htmlFor={id}>{label}</label>
+      <input id={id} list={listId} value={value} onChange={(event) => onChange(event.target.value)} className={`${input} mt-2`} />
+      <datalist id={listId}>{options.map((option) => <option key={option} value={option} />)}</datalist>
+    </div>
+  );
+}
