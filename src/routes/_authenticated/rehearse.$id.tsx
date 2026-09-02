@@ -179,8 +179,9 @@ function RehearsePage() {
              </div>
              <div className="mt-3 flex flex-wrap gap-2">
                {data.spec.participants.map((participant) => (
-                 <Chip key={participant.id} tone={currentPresent.includes(participant.name) ? "default" : "muted"}>
+                 <Chip key={participant.id} tone={currentPresent.includes(participant.name) ? "accent" : "default"}>
                    {participant.name} · {participant.role}
+                   {currentPresent.includes(participant.name) ? "" : " · away"}
                  </Chip>
                ))}
              </div>
