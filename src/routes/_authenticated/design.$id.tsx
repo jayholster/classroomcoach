@@ -220,16 +220,42 @@ function DesignReview() {
             </div>
           )}
 
-          {spec && (
-            <>
-              <Section
-                title="Purpose"
-                actions={
-                  <button className={btn} onClick={() => void runGeneration()} disabled={busy !== null}>
-                    {busy === "generate" ? "Regenerating…" : "Regenerate"}
-                  </button>
-                }
-              >
+           {spec && (
+             <>
+               <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-y border-border py-3">
+                 <div>
+                   <p className="text-xs font-semibold uppercase tracking-widest text-primary">Draft controls</p>
+                   <p className="mt-1 text-xs text-muted-foreground" aria-live="polite">
+                     {autosaveStatus ?? "Changes save automatically as you work."}
+                   </p>
+                 </div>
+                 <fieldset className="flex items-center gap-1 rounded-sm border border-border p-1">
+                   <legend className="sr-only">Draft detail level</legend>
+                   {(["simple", "advanced"] as const).map((mode) => (
+                     <button
+                       key={mode}
+                       type="button"
+                       aria-pressed={viewMode === mode}
+                       onClick={() => setViewMode(mode)}
+                       className={`rounded-sm px-3 py-1.5 text-xs capitalize ${
+                         viewMode === mode
+                           ? "bg-primary text-primary-foreground"
+                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                       }`}
+                     >
+                       {mode}
+                     </button>
+                   ))}
+                 </fieldset>
+               </div>
+               <Section
+                 title="Purpose"
+                 actions={
+                   <button className={btn} onClick={() => void runGeneration()} disabled={busy !== null}>
+                     {busy === "generate" ? "Regenerating…" : "Regenerate"}
+                   </button>
+                 }
+               >
                 <label className="text-xs uppercase tracking-wide text-muted-foreground">Practice goal</label>
                 <textarea
                   className={`${input} mt-1`}

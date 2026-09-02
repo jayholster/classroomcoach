@@ -1,8 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AppShell, Chip, Drawer, Section, btn } from "@/components/AppShell";
+import { Chip, Drawer, Section, btn } from "@/components/AppShell";
 import { OperationsPanel } from "@/components/OperationsPanel";
 import {
   activateModelConfiguration,
@@ -13,24 +12,11 @@ import {
   runAssuranceChecks,
 } from "@/lib/api/admin.functions";
 
-export const Route = createFileRoute("/_authenticated/assurance")({
-  head: () => ({
-    meta: [
-      { title: "Assurance — Classroom Coach" },
-      {
-        name: "description",
-        content: "Structured checks over published simulations, recorded events, and educator flags.",
-      },
-      { property: "og:title", content: "Assurance — Classroom Coach" },
-      { property: "og:description", content: "Provenance, continuity and hidden-information checks — never a score." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-  component: AssurancePage,
-});
-
-function AssurancePage() {
+/**
+ * Assurance lives inside the Research Terminal: it is governance evidence over
+ * what has actually been published and recorded, not a separate product area.
+ */
+export function AssurancePanel() {
   const checks = useServerFn(runAssuranceChecks);
   const flagged = useServerFn(listFlaggedMoments);
   const models = useServerFn(listModelConfigurations);
@@ -41,7 +27,7 @@ function AssurancePage() {
   const checksQuery = useQuery({ queryKey: ["assurance"], queryFn: () => checks() });
   const flagsQuery = useQuery({ queryKey: ["flagged"], queryFn: () => flagged() });
   const modelsQuery = useQuery({ queryKey: ["models"], queryFn: () => models() });
-  const meQuery = useQuery({ queryKey: ["me"], queryFn: () => me() });
+  const meQuery = useQuery({ queryKey: ["me"], queryFn: () => me(), staleTime: 300_000 });
 
   const [rerunResult, setRerunResult] = useState<{ original: string; rerun: string; model: string } | null>(null);
   const [rerunError, setRerunError] = useState<string | null>(null);
@@ -59,9 +45,8 @@ function AssurancePage() {
   };
 
   return (
-    <AppShell>
-      <h1 className="text-2xl font-semibold tracking-tight text-primary">Assurance</h1>
-      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+    <>
+      <p className="mb-6 max-w-2xl text-sm text-muted-foreground">
         Mechanical checks over what has actually been published and recorded. These checks do not evaluate teaching
         quality and never produce a score.
       </p>
@@ -100,7 +85,11 @@ function AssurancePage() {
       </Section>
 
       <Section title="Flagged moments" description="Raised by educators during rehearsal. Re-run a moment to test it.">
-        {rerunError && <p className="mb-3 text-sm text-destructive">{rerunError}</p>}
+        {rerunError && (
+          <p role="alert" className="mb-3 text-sm text-destructive">
+            {rerunError}
+          </p>
+        )}
         <ul className="divide-y divide-border border-t border-border">
           {(flagsQuery.data ?? []).map((f) => (
             <li key={f.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
@@ -168,6 +157,6 @@ function AssurancePage() {
           </p>
         </Drawer>
       )}
-    </AppShell>
+    </>
   );
 }

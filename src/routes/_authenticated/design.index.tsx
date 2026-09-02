@@ -27,6 +27,49 @@ export const Route = createFileRoute("/_authenticated/design/")({
   component: DesignStart,
 });
 
+const EXAMPLES = [
+  {
+    purpose:
+      "Responding to conflict between two students without losing the instructional purpose of the lesson.",
+    practitioner: "Preservice teacher",
+    specifics: "Two students who are usually close have stopped speaking to each other.",
+  },
+  {
+    purpose: "Redirecting a student who is disengaged without singling them out in front of peers.",
+    practitioner: "First-year classroom teacher",
+    specifics: "The student has been withdrawn since a group project reassignment.",
+  },
+  {
+    purpose: "Holding a boundary about materials and safety while keeping the relationship intact.",
+    practitioner: "Student teacher",
+    specifics: "A student repeatedly ignores a shared-equipment routine.",
+  },
+  {
+    purpose: "Responding to a student who challenges your decision in front of the whole class.",
+    practitioner: "Preservice teacher",
+    specifics: "The challenge follows a seating change the class did not expect.",
+  },
+  {
+    purpose: "Checking in with a student whose participation has dropped sharply this month.",
+    practitioner: "Early-career teacher",
+    specifics: "Other students have started to notice and comment.",
+  },
+  {
+    purpose: "Facilitating a repair conversation after a comment that hurt another student.",
+    practitioner: "Preservice teacher",
+    specifics: "Both students want to move on but have not spoken about it.",
+  },
+];
+
+const SETTINGS = [
+  "7th-grade band rehearsal",
+  "8th-grade science lab",
+  "High school art studio",
+  "6th-grade general music",
+  "Middle school chorus",
+  "7th-grade humanities block",
+];
+
 interface PendingFile {
   file: File;
   status: "Pending" | "Uploading" | "Ready" | "Failed";
@@ -50,6 +93,22 @@ function DesignStart() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const fillExample = () => {
+    const pool = EXAMPLES.filter((e) => e.purpose !== purpose);
+    const pick = pool[Math.floor(Math.random() * pool.length)] ?? {
+      purpose: "Practicing a difficult classroom conversation while keeping the learning goal in view.",
+      practitioner: "Preservice teacher",
+      specifics: "A student needs support, and the rest of the group is watching.",
+    };
+    const settingPool = SETTINGS.filter((value) => value !== setting);
+    const nextSetting = settingPool[Math.floor(Math.random() * settingPool.length)] ?? "7th-grade classroom";
+    setPurpose(pick.purpose);
+    setPractitioner(pick.practitioner);
+    setSetting(nextSetting);
+    setSpecifics(pick.specifics);
+    setError(null);
+  };
 
   const addFiles = (list: FileList | null) => {
     if (!list) return;
@@ -129,7 +188,12 @@ function DesignStart() {
     <AppShell>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-primary">What should someone practice?</h1>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight text-primary">What should someone practice?</h1>
+            <button className={btn} onClick={fillExample} disabled={busy}>
+              Try an example
+            </button>
+          </div>
           <p id="privacy-reminder" className="mt-3 border-l-2 border-ring/40 bg-accent/40 px-3 py-2 text-xs text-muted-foreground">
             {PRIVACY_REMINDER}
           </p>

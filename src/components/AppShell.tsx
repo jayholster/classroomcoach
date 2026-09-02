@@ -12,7 +12,6 @@ const NAV = [
   { to: "/design", label: "Design Lab", roles: ["educator", "admin"] },
   { to: "/rehearse", label: "Rehearse", roles: ["educator", "admin", "learner"] },
   { to: "/review", label: "Review", roles: ["educator", "admin", "learner"] },
-  { to: "/assurance", label: "Assurance", roles: ["educator", "admin"] },
   { to: "/research", label: "Research", roles: [] },
 ] as const;
 

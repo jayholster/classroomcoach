@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell, Chip, Section, btn, btnPrimary, input } from "@/components/AppShell";
+import { AssurancePanel } from "@/components/AssurancePanel";
 import {
   exportDataset,
   getProjectOverview,
@@ -15,13 +16,13 @@ import { EMPTY_DEFINITION, FAMILY_LABELS, type DatasetDefinition, type FieldFami
 export const Route = createFileRoute("/_authenticated/research/$projectId")({
   head: () => ({
     meta: [
-      { title: "Study workspace — Classroom Coach Research" },
+      { title: "Dataset workspace — Classroom Coach Research" },
       {
         name: "description",
-        content: "Study overview, rehearsal sessions, and dataset building for an authorized research scope.",
+        content: "Build, inspect, and export a pseudonymous dataset from an authorized Classroom Coach research scope.",
       },
-      { property: "og:title", content: "Study workspace — Classroom Coach Research" },
-      { property: "og:description", content: "Overview, sessions and dataset export for one authorized study." },
+      { property: "og:title", content: "Dataset workspace — Classroom Coach Research" },
+      { property: "og:description", content: "Dataset builder, event explorer, and assurance evidence for one authorized scope." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -29,11 +30,11 @@ export const Route = createFileRoute("/_authenticated/research/$projectId")({
   component: ProjectWorkspace,
 });
 
-type Tab = "overview" | "sessions" | "dataset";
+type Tab = "overview" | "sessions" | "dataset" | "assurance";
 
 function ProjectWorkspace() {
   const { projectId } = Route.useParams();
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTab] = useState<Tab>("dataset");
 
   const overviewFn = useServerFn(getProjectOverview);
   const overview = useQuery({
@@ -46,13 +47,13 @@ function ProjectWorkspace() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Link to="/research" className="text-xs text-muted-foreground hover:text-foreground">
-            ← All studies
+            ← Dataset workspaces
           </Link>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-primary">
-            {overview.data?.project.name ?? "Study"}
+            {overview.data?.project.name ?? "Dataset workspace"}
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            {overview.data?.project.description || "Read-only research access within your granted scope."}
+            {overview.data?.project.description || "Build and review a pseudonymous dataset within your granted scope."}
           </p>
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -70,6 +71,7 @@ function ProjectWorkspace() {
             ["overview", "Overview"],
             ["sessions", "Sessions"],
             ["dataset", "Dataset Builder"],
+            ["assurance", "Assurance"],
           ] as [Tab, string][]
         ).map(([key, label]) => (
           <button
@@ -91,6 +93,7 @@ function ProjectWorkspace() {
         {tab === "overview" && <Overview data={overview.data} loading={overview.isLoading} projectId={projectId} />}
         {tab === "sessions" && <Sessions projectId={projectId} />}
         {tab === "dataset" && <DatasetBuilder projectId={projectId} />}
+        {tab === "assurance" && <AssurancePanel />}
       </div>
     </AppShell>
   );
