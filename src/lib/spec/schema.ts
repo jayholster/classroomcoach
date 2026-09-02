@@ -85,8 +85,17 @@ export type Participant = z.infer<typeof ParticipantSchema>;
 export type Relationship = z.infer<typeof RelationshipSchema>;
 export type OpeningMoment = z.infer<typeof OpeningMomentSchema>;
 
+export const SceneSchema = z.object({
+  label: z.string().default(""),
+  description: z.string().default(""),
+});
+export type Scene = z.infer<typeof SceneSchema>;
+
 export const SimStateSchema = z.object({
   active_participants: z.array(z.string()).default([]),
+  /** The cast is fixed at publication; this records who is present in the current scene. */
+  present_participants: z.array(z.string()).default([]),
+  scene: SceneSchema.default({ label: "", description: "" }),
   unresolved: z.array(z.string()).default([]),
   participation: z.array(z.string()).default([]),
   relationship_changes: z.array(z.string()).default([]),
@@ -94,6 +103,14 @@ export const SimStateSchema = z.object({
   latent: z.array(z.string()).default([]),
 });
 export type SimState = z.infer<typeof SimStateSchema>;
+
+export const SCENE_PRESETS = [
+  "Later the same day",
+  "Hallway right after class",
+  "The next class period",
+  "A meeting after school",
+  "A family conference",
+] as const;
 
 export const VisibleResponseSchema = z.object({
   voices: z.array(VoiceSchema).default([]),
@@ -135,6 +152,8 @@ export function applyStateUpdate(state: SimState, update: StateUpdate): SimState
   const merge = (a: string[], b: string[]) => Array.from(new Set([...a, ...b]));
   return {
     active_participants: state.active_participants,
+    present_participants: state.present_participants,
+    scene: state.scene,
     relationship_changes: merge(state.relationship_changes, update.relationship_changes),
     participation: merge(state.participation, update.participation_changes),
     revealed: merge(state.revealed, update.newly_revealed),

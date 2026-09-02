@@ -1,0 +1,1 @@
+revoke all on function public.commit_simulation_event(uuid, integer, text, text, jsonb, jsonb, jsonb, text, text, text, uuid, jsonb, text) from public, anon, authenticated;

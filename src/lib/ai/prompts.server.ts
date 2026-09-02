@@ -77,10 +77,11 @@ export function turnPrompt(args: {
   history: { role: string; text: string }[];
   userAction: string;
 }): string {
+  const present = new Set(args.state.present_participants.length ? args.state.present_participants : args.spec.participants.map((p) => p.name));
   const participants = args.spec.participants
     .map(
       (p) =>
-        `- ${p.name} (${p.role}) goal: ${p.current_goal}; concern: ${p.current_concern}; knows: ${p.known_information.join("; ") || "—"}; latent (reveal only with an interactional reason): ${p.latent_information.join("; ") || "—"}`,
+        `- ${p.name} (${p.role})${present.has(p.name) ? " [PRESENT]" : " [NOT PRESENT]"} goal: ${p.current_goal}; concern: ${p.current_concern}; knows: ${p.known_information.join("; ") || "—"}; latent (reveal only with an interactional reason): ${p.latent_information.join("; ") || "—"}`,
     )
     .join("\n");
   const history = args.history
@@ -93,12 +94,13 @@ ${foundationText(args.foundation)}
 
 # Published scenario specification
 Setting: ${args.spec.setting.label} — ${args.spec.setting.description}
+Current scene: ${args.state.scene.label || args.spec.setting.label} — ${args.state.scene.description || args.spec.setting.description}
 Practicing role: ${args.spec.practicing_role}
 Starting moment: ${args.spec.conditions.starting_moment}
 Conditions: intensity ${args.spec.conditions.intensity}; pacing ${args.spec.conditions.pacing}; improvement ${args.spec.conditions.allow_improvement}; deterioration ${args.spec.conditions.allow_deterioration}; complications ${args.spec.conditions.allow_complications}
 Boundaries: ${args.spec.conditions.boundaries.join(" | ")}
 
-Participants:
+Published cast (closed roster; these names and roles cannot change):
 ${participants}
 
 Relationships:
@@ -114,7 +116,7 @@ ${history || "(the simulation is just beginning)"}
 ${args.userAction}
 
 # Task
-Advance the situation by one short moment and return json:
+Advance the situation by one short moment and return json. Use only voices from the published cast who are marked [PRESENT]. Never invent, rename, replace, or add a participant. Do not move anyone in or out of the scene; scene changes are explicit educator actions.
 
 {
   "visible_response": { "voices": [{ "name": string, "cue": string, "line": string }], "observation": string },

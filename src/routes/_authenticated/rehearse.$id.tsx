@@ -4,12 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell, Chip, Drawer, btn, btnPrimary, input } from "@/components/AppShell";
 import {
+  changeScene,
   endRehearsal,
   flagEvent,
   getRehearsalSession,
   submitRehearsalTurn,
   type SessionEvent,
 } from "@/lib/api/rehearsal.functions";
+import { SCENE_PRESETS } from "@/lib/spec/schema";
 import { Message, MessageContent } from "@/components/ai-elements/message";
 
 const FLAG_REASONS = [
@@ -41,6 +43,12 @@ function RehearsePage() {
   const submit = useServerFn(submitRehearsalTurn);
   const finish = useServerFn(endRehearsal);
   const flag = useServerFn(flagEvent);
+  const moveScene = useServerFn(changeScene);
+
+  const [showScene, setShowScene] = useState(false);
+  const [sceneLabel, setSceneLabel] = useState("");
+  const [sceneDescription, setSceneDescription] = useState("");
+  const [presentParticipants, setPresentParticipants] = useState<string[]>([]);
 
   const sessionQuery = useQuery({
     queryKey: ["rehearsal", id],
@@ -107,7 +115,35 @@ function RehearsePage() {
     navigate({ to: "/review/$sessionId", params: { sessionId: id } });
   };
 
-  const turnCount = data.events.filter((e: SessionEvent) => Boolean(e.user_action)).length;
+  const turnCount = data.events.filter((e: SessionEvent) => e.kind === "turn").length;
+  const currentPresent = data.state.present_participants.length
+    ? data.state.present_participants
+    : data.spec.participants.map((participant) => participant.name);
+
+  const saveScene = async () => {
+    if (!sceneLabel.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await moveScene({
+        data: {
+          sessionId: id,
+          label: sceneLabel,
+          description: sceneDescription,
+          presentParticipants: presentParticipants.length ? presentParticipants : currentPresent,
+        },
+      });
+      setShowScene(false);
+      setSceneLabel("");
+      setSceneDescription("");
+      setPresentParticipants([]);
+      await sessionQuery.refetch();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <AppShell>
@@ -117,20 +153,41 @@ function RehearsePage() {
             <div>
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Rehearsal in progress</p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight text-primary">
-                {data.spec.setting.label || data.session.scenario_title}
+                {data.state.scene.label || data.spec.setting.label || data.session.scenario_title}
               </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {data.state.scene.description || data.spec.setting.description || "The current scene"}
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 You are the {data.spec.practicing_role} · {turnCount} {turnCount === 1 ? "turn" : "turns"} so far
               </p>
             </div>
-            <div className="flex gap-2">
-              <Chip>{data.versionLabel}</Chip>
-              {ended && <Chip tone="warn">Ended</Chip>}
-            </div>
+             <div className="flex flex-wrap gap-2">
+               <Chip>{data.versionLabel}</Chip>
+               <Chip>{currentPresent.length} present</Chip>
+               {ended && <Chip tone="warn">Ended</Chip>}
+             </div>
           </div>
 
-          <div
-            className="panel mt-6 divide-y divide-border"
+           <div className="mt-5 border-y border-border py-4">
+             <div className="flex flex-wrap items-center justify-between gap-3">
+               <div>
+                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Who’s in the room</p>
+                 <p className="mt-1 text-xs text-muted-foreground">The published cast stays fixed. Change who is present only when you change the scene.</p>
+               </div>
+               {!ended && <button className={btn} type="button" onClick={() => { setSceneLabel(""); setSceneDescription(""); setPresentParticipants(currentPresent); setShowScene(true); }}>Change the scene</button>}
+             </div>
+             <div className="mt-3 flex flex-wrap gap-2">
+               {data.spec.participants.map((participant) => (
+                 <Chip key={participant.id} tone={currentPresent.includes(participant.name) ? "default" : "muted"}>
+                   {participant.name} · {participant.role}
+                 </Chip>
+               ))}
+             </div>
+           </div>
+
+           <div
+             className="panel mt-6 divide-y divide-border"
             role="log"
             aria-live="polite"
             aria-label="Rehearsal transcript"
