@@ -25,18 +25,14 @@ export const Route = createFileRoute("/_authenticated/research/")({
   component: ResearchHome,
 });
 
-type Tab = "datasets" | "assurance";
-
 function ResearchHome() {
   const navigate = useNavigate();
   const list = useServerFn(listResearchProjects);
   const me = useServerFn(getMe);
   const createProject = useServerFn(createResearchProject);
-
+  
   const query = useQuery({ queryKey: ["research", "projects"], queryFn: () => list() });
   const meQuery = useQuery({ queryKey: ["me"], queryFn: () => me(), staleTime: 300_000 });
-
-  const [tab, setTab] = useState<Tab>("datasets");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
@@ -66,33 +62,11 @@ function ResearchHome() {
         appear as stable pseudonymous identifiers, never as names or email addresses.
       </p>
 
-      <nav aria-label="Research sections" className="mt-6 flex gap-6 border-b border-border">
-        {(
-          [
-            ["datasets", "Datasets"],
-            ["assurance", "Assurance"],
-          ] as [Tab, string][]
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            aria-current={tab === key ? "page" : undefined}
-            className={`-mb-px border-b-2 pb-3 text-sm ${
-              tab === key
-                ? "border-primary font-medium text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
-
       <div className="mt-8">
-        {tab === "assurance" && <AssurancePanel />}
-
-        {tab === "datasets" && (
-          <>
+        <Section
+          title="Dataset workspaces"
+          description="Choose a workspace to build, preview, and export a pseudonymous dataset. Assurance evidence is available inside each workspace."
+        >
             <Section
               title="Dataset workspaces"
               description="Each workspace holds its own scope, sessions, event explorer and dataset builder."
