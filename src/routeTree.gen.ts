@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AssuranceRouteImport } from './routes/assurance'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ReviewRouteImport } from './routes/review'
 import { Route as DesignIndexRouteImport } from './routes/design.index'
 import { Route as DesignIdRouteImport } from './routes/design.$id'
@@ -25,6 +26,11 @@ const IndexRoute = IndexRouteImport.update({
 const AssuranceRoute = AssuranceRouteImport.update({
   id: '/assurance',
   path: '/assurance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReviewRoute = ReviewRouteImport.update({
@@ -56,6 +62,7 @@ const RehearseIdRoute = RehearseIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assurance': typeof AssuranceRoute
+  '/auth': typeof AuthRoute
   '/review': typeof ReviewRoute
   '/design/$id': typeof DesignIdRoute
   '/rehearse/$id': typeof RehearseIdRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assurance': typeof AssuranceRoute
+  '/auth': typeof AuthRoute
   '/review': typeof ReviewRoute
   '/design/$id': typeof DesignIdRoute
   '/rehearse/$id': typeof RehearseIdRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/assurance': typeof AssuranceRoute
+  '/auth': typeof AuthRoute
   '/review': typeof ReviewRoute
   '/design/$id': typeof DesignIdRoute
   '/rehearse/$id': typeof RehearseIdRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/assurance'
+    | '/auth'
     | '/review'
     | '/design/$id'
     | '/rehearse/$id'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/assurance'
+    | '/auth'
     | '/review'
     | '/design/$id'
     | '/rehearse/$id'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/assurance'
+    | '/auth'
     | '/review'
     | '/design/$id'
     | '/rehearse/$id'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AssuranceRoute: typeof AssuranceRoute
+  AuthRoute: typeof AuthRoute
   ReviewRoute: typeof ReviewRoute
   DesignIdRoute: typeof DesignIdRoute
   RehearseIdRoute: typeof RehearseIdRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/assurance'
       fullPath: '/assurance'
       preLoaderRoute: typeof AssuranceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/review': {
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssuranceRoute: AssuranceRoute,
+  AuthRoute: AuthRoute,
   ReviewRoute: ReviewRoute,
   DesignIdRoute: DesignIdRoute,
   RehearseIdRoute: RehearseIdRoute,
