@@ -1,0 +1,10 @@
+REVOKE EXECUTE ON FUNCTION public.is_research_member(uuid) FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.research_project_org(uuid) FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.research_can_read_scenario(uuid) FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.research_can_read_session(uuid) FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.research_can_read_org(uuid) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.is_research_member(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.research_project_org(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.research_can_read_scenario(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.research_can_read_session(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.research_can_read_org(uuid) TO service_role;
