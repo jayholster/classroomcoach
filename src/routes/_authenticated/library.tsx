@@ -82,7 +82,7 @@ function LibraryPage() {
         data: {
           scenarioId: assigning.id,
           scenarioVersionId: assigning.latest_version_id,
-          groupId: groupId || undefined,
+          ...(groupId ? { groupId } : {}),
           title: assignmentTitle,
           instructions: assignmentInstructions,
         },
