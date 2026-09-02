@@ -35,7 +35,7 @@ export const listModelConfigurations = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("model_configurations")
-      .select("id, name, provider_type, model, endpoint, temperature, max_output, is_active, updated_at")
+      .select("id, name, provider_type, model, endpoint, temperature, max_output, active, updated_at")
       .order("name");
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as {
@@ -46,7 +46,7 @@ export const listModelConfigurations = createServerFn({ method: "GET" })
       endpoint: string | null;
       temperature: number | null;
       max_output: number | null;
-      is_active: boolean;
+      active: boolean;
       updated_at: string;
     }[];
   });
@@ -60,10 +60,10 @@ export const activateModelConfiguration = createServerFn({ method: "POST" })
       _role: "admin",
     });
     if (!isAdmin) throw new Error("Only an administrator can change the active model.");
-    await context.supabase.from("model_configurations").update({ is_active: false }).neq("id", data.id);
+    await context.supabase.from("model_configurations").update({ active: false }).neq("id", data.id);
     const { error } = await context.supabase
       .from("model_configurations")
-      .update({ is_active: true })
+      .update({ active: true })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
