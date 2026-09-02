@@ -18,6 +18,7 @@ export interface ScenarioRow {
   updated_at: string;
   version_count?: number;
   latest_version_label?: string | null;
+  latest_version_id?: string | null;
 }
 
 const SCENARIO_COLUMNS =
@@ -38,16 +39,17 @@ export const listScenarios = createServerFn({ method: "GET" })
       .from("scenario_versions")
       .select("scenario_id, version_label, created_at")
       .order("created_at", { ascending: false });
-    const byScenario = new Map<string, { count: number; latest: string }>();
-    for (const v of (versions ?? []) as unknown as { scenario_id: string; version_label: string }[]) {
+    const byScenario = new Map<string, { count: number; latest: string; latestId: string }>();
+    for (const v of (versions ?? []) as unknown as { scenario_id: string; version_label: string; id: string }[]) {
       const entry = byScenario.get(v.scenario_id);
       if (entry) entry.count += 1;
-      else byScenario.set(v.scenario_id, { count: 1, latest: v.version_label });
+      else byScenario.set(v.scenario_id, { count: 1, latest: v.version_label, latestId: v.id });
     }
     return scenarios.map((s) => ({
       ...s,
       version_count: byScenario.get(s.id)?.count ?? 0,
       latest_version_label: byScenario.get(s.id)?.latest ?? null,
+      latest_version_id: byScenario.get(s.id)?.latestId ?? null,
     }));
   });
 

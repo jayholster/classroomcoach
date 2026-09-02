@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -62,11 +62,35 @@ function DesignReview() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<null | "generate" | "save" | "publish">(null);
+  const [viewMode, setViewMode] = useState<"simple" | "advanced">("simple");
+  const [autosaveStatus, setAutosaveStatus] = useState<string | null>(null);
+  const lastSavedSpecRef = useRef<string | null>(null);
 
   useEffect(() => {
     const loaded = scenarioQuery.data?.scenario.draft_spec ?? null;
-    if (loaded) setSpec(loaded);
+    if (loaded) {
+      setSpec(loaded);
+      lastSavedSpecRef.current = JSON.stringify(loaded);
+    }
   }, [scenarioQuery.data]);
+
+  useEffect(() => {
+    if (!spec) return;
+    const serialized = JSON.stringify(spec);
+    if (lastSavedSpecRef.current === serialized) return;
+    const timer = window.setTimeout(async () => {
+      setAutosaveStatus("Saving changes…");
+      try {
+        await saveSpec({ data: { id, spec } });
+        lastSavedSpecRef.current = serialized;
+        setAutosaveStatus("All changes saved");
+      } catch (err) {
+        setAutosaveStatus(null);
+        setError((err as Error).message);
+      }
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [id, saveSpec, spec]);
 
   if (scenarioQuery.isPending) {
     return (
@@ -108,6 +132,8 @@ function DesignReview() {
     setError(null);
     try {
       await saveSpec({ data: { id, spec } });
+      lastSavedSpecRef.current = JSON.stringify(spec);
+      setAutosaveStatus("All changes saved");
       setNotice("Draft saved.");
     } catch (err) {
       setError((err as Error).message);
@@ -265,6 +291,7 @@ function DesignReview() {
                 </ul>
               </Section>
 
+              {viewMode === "advanced" && (
               <Section
                 title="Relationships & tensions"
                 description="Situational only. Adjusting these does not change the person's underlying profile."
@@ -349,7 +376,9 @@ function DesignReview() {
                   ))}
                 </ul>
               </Section>
+              )}
 
+              {viewMode === "advanced" && (
               <Section
                 title="What is known / hidden"
                 description="Latent information can emerge through interaction but should not be revealed before the situation makes it available."
@@ -510,6 +539,7 @@ function DesignReview() {
                   </div>
                 </div>
               </Section>
+              )}
 
               <Section title="Opening moment" description="How the situation begins, mid-action.">
                 <div className="whitespace-pre-line rounded-sm border border-border bg-muted/40 p-4 text-sm">
