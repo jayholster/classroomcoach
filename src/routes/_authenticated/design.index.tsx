@@ -87,8 +87,16 @@ function DesignStart() {
     setSetting(settingPick);
     setDifficultMoment(moment.value);
     setStudentCount(STUDENT_COUNTS[Math.floor(Math.random() * STUDENT_COUNTS.length)] ?? 2);
+    setCustomFocus("");
+    setCustomMoment("");
+    setOthers([]);
+    setCustomOther("");
     setSpecifics("");
     setError(null);
+  };
+
+  const toggleOther = (value: string) => {
+    setOthers((current) => (current.includes(value) ? current.filter((item) => item !== value) : [...current, value]));
   };
 
   const addFiles = (list: FileList | null) => {
