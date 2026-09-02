@@ -11,14 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AssuranceRouteImport } from './routes/assurance'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as ReviewRouteImport } from './routes/review'
+import { Route as AuthenticatedAssuranceRouteImport } from './routes/_authenticated/assurance'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
-import { Route as DesignIndexRouteImport } from './routes/design.index'
-import { Route as DesignIdRouteImport } from './routes/design.$id'
-import { Route as RehearseIndexRouteImport } from './routes/rehearse.index'
-import { Route as RehearseIdRouteImport } from './routes/rehearse.$id'
+import { Route as AuthenticatedDesignIndexRouteImport } from './routes/_authenticated/design.index'
+import { Route as AuthenticatedDesignIdRouteImport } from './routes/_authenticated/design.$id'
+import { Route as AuthenticatedRehearseIndexRouteImport } from './routes/_authenticated/rehearse.index'
+import { Route as AuthenticatedRehearseIdRouteImport } from './routes/_authenticated/rehearse.$id'
+import { Route as AuthenticatedReviewIndexRouteImport } from './routes/_authenticated/review.index'
+import { Route as AuthenticatedReviewSessionIdRouteImport } from './routes/_authenticated/review.$sessionId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,129 +30,138 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AssuranceRoute = AssuranceRouteImport.update({
-  id: '/assurance',
-  path: '/assurance',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReviewRoute = ReviewRouteImport.update({
-  id: '/review',
-  path: '/review',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedAssuranceRoute = AuthenticatedAssuranceRouteImport.update({
+  id: '/assurance',
+  path: '/assurance',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   id: '/library',
   path: '/library',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const DesignIndexRoute = DesignIndexRouteImport.update({
-  id: '/design/',
-  path: '/design/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DesignIdRoute = DesignIdRouteImport.update({
+const AuthenticatedDesignIndexRoute =
+  AuthenticatedDesignIndexRouteImport.update({
+    id: '/design/',
+    path: '/design/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDesignIdRoute = AuthenticatedDesignIdRouteImport.update({
   id: '/design/$id',
   path: '/design/$id',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const RehearseIndexRoute = RehearseIndexRouteImport.update({
-  id: '/rehearse/',
-  path: '/rehearse/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RehearseIdRoute = RehearseIdRouteImport.update({
+const AuthenticatedRehearseIndexRoute =
+  AuthenticatedRehearseIndexRouteImport.update({
+    id: '/rehearse/',
+    path: '/rehearse/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRehearseIdRoute = AuthenticatedRehearseIdRouteImport.update({
   id: '/rehearse/$id',
   path: '/rehearse/$id',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReviewIndexRoute =
+  AuthenticatedReviewIndexRouteImport.update({
+    id: '/review/',
+    path: '/review/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedReviewSessionIdRoute =
+  AuthenticatedReviewSessionIdRouteImport.update({
+    id: '/review/$sessionId',
+    path: '/review/$sessionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/assurance': typeof AssuranceRoute
   '/auth': typeof AuthRoute
-  '/review': typeof ReviewRoute
+  '/assurance': typeof AuthenticatedAssuranceRoute
   '/library': typeof AuthenticatedLibraryRoute
-  '/design/$id': typeof DesignIdRoute
-  '/rehearse/$id': typeof RehearseIdRoute
-  '/design/': typeof DesignIndexRoute
-  '/rehearse/': typeof RehearseIndexRoute
+  '/design/$id': typeof AuthenticatedDesignIdRoute
+  '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
+  '/review/$sessionId': typeof AuthenticatedReviewSessionIdRoute
+  '/design/': typeof AuthenticatedDesignIndexRoute
+  '/rehearse/': typeof AuthenticatedRehearseIndexRoute
+  '/review/': typeof AuthenticatedReviewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/assurance': typeof AssuranceRoute
   '/auth': typeof AuthRoute
-  '/review': typeof ReviewRoute
+  '/assurance': typeof AuthenticatedAssuranceRoute
   '/library': typeof AuthenticatedLibraryRoute
-  '/design/$id': typeof DesignIdRoute
-  '/rehearse/$id': typeof RehearseIdRoute
-  '/design': typeof DesignIndexRoute
-  '/rehearse': typeof RehearseIndexRoute
+  '/design/$id': typeof AuthenticatedDesignIdRoute
+  '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
+  '/review/$sessionId': typeof AuthenticatedReviewSessionIdRoute
+  '/design': typeof AuthenticatedDesignIndexRoute
+  '/rehearse': typeof AuthenticatedRehearseIndexRoute
+  '/review': typeof AuthenticatedReviewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/assurance': typeof AssuranceRoute
   '/auth': typeof AuthRoute
-  '/review': typeof ReviewRoute
+  '/_authenticated/assurance': typeof AuthenticatedAssuranceRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
-  '/design/$id': typeof DesignIdRoute
-  '/rehearse/$id': typeof RehearseIdRoute
-  '/design/': typeof DesignIndexRoute
-  '/rehearse/': typeof RehearseIndexRoute
+  '/_authenticated/design/$id': typeof AuthenticatedDesignIdRoute
+  '/_authenticated/rehearse/$id': typeof AuthenticatedRehearseIdRoute
+  '/_authenticated/review/$sessionId': typeof AuthenticatedReviewSessionIdRoute
+  '/_authenticated/design/': typeof AuthenticatedDesignIndexRoute
+  '/_authenticated/rehearse/': typeof AuthenticatedRehearseIndexRoute
+  '/_authenticated/review/': typeof AuthenticatedReviewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/assurance'
     | '/auth'
-    | '/review'
+    | '/assurance'
     | '/library'
     | '/design/$id'
     | '/rehearse/$id'
+    | '/review/$sessionId'
     | '/design/'
     | '/rehearse/'
+    | '/review/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/assurance'
     | '/auth'
-    | '/review'
+    | '/assurance'
     | '/library'
     | '/design/$id'
     | '/rehearse/$id'
+    | '/review/$sessionId'
     | '/design'
     | '/rehearse'
+    | '/review'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/assurance'
     | '/auth'
-    | '/review'
+    | '/_authenticated/assurance'
     | '/_authenticated/library'
-    | '/design/$id'
-    | '/rehearse/$id'
-    | '/design/'
-    | '/rehearse/'
+    | '/_authenticated/design/$id'
+    | '/_authenticated/rehearse/$id'
+    | '/_authenticated/review/$sessionId'
+    | '/_authenticated/design/'
+    | '/_authenticated/rehearse/'
+    | '/_authenticated/review/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AssuranceRoute: typeof AssuranceRoute
   AuthRoute: typeof AuthRoute
-  ReviewRoute: typeof ReviewRoute
-  DesignIdRoute: typeof DesignIdRoute
-  RehearseIdRoute: typeof RehearseIdRoute
-  DesignIndexRoute: typeof DesignIndexRoute
-  RehearseIndexRoute: typeof RehearseIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -170,13 +180,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/assurance': {
-      id: '/assurance'
-      path: '/assurance'
-      fullPath: '/assurance'
-      preLoaderRoute: typeof AssuranceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -184,12 +187,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/review': {
-      id: '/review'
-      path: '/review'
-      fullPath: '/review'
-      preLoaderRoute: typeof ReviewRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/assurance': {
+      id: '/_authenticated/assurance'
+      path: '/assurance'
+      fullPath: '/assurance'
+      preLoaderRoute: typeof AuthenticatedAssuranceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/library': {
       id: '/_authenticated/library'
@@ -198,43 +201,71 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/design/': {
-      id: '/design/'
+    '/_authenticated/design/': {
+      id: '/_authenticated/design/'
       path: '/design'
       fullPath: '/design/'
-      preLoaderRoute: typeof DesignIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedDesignIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/design/$id': {
-      id: '/design/$id'
+    '/_authenticated/design/$id': {
+      id: '/_authenticated/design/$id'
       path: '/design/$id'
       fullPath: '/design/$id'
-      preLoaderRoute: typeof DesignIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedDesignIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/rehearse/': {
-      id: '/rehearse/'
+    '/_authenticated/rehearse/': {
+      id: '/_authenticated/rehearse/'
       path: '/rehearse'
       fullPath: '/rehearse/'
-      preLoaderRoute: typeof RehearseIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedRehearseIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/rehearse/$id': {
-      id: '/rehearse/$id'
+    '/_authenticated/rehearse/$id': {
+      id: '/_authenticated/rehearse/$id'
       path: '/rehearse/$id'
       fullPath: '/rehearse/$id'
-      preLoaderRoute: typeof RehearseIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedRehearseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/review/': {
+      id: '/_authenticated/review/'
+      path: '/review'
+      fullPath: '/review/'
+      preLoaderRoute: typeof AuthenticatedReviewIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/review/$sessionId': {
+      id: '/_authenticated/review/$sessionId'
+      path: '/review/$sessionId'
+      fullPath: '/review/$sessionId'
+      preLoaderRoute: typeof AuthenticatedReviewSessionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAssuranceRoute: typeof AuthenticatedAssuranceRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
+  AuthenticatedDesignIdRoute: typeof AuthenticatedDesignIdRoute
+  AuthenticatedRehearseIdRoute: typeof AuthenticatedRehearseIdRoute
+  AuthenticatedReviewSessionIdRoute: typeof AuthenticatedReviewSessionIdRoute
+  AuthenticatedDesignIndexRoute: typeof AuthenticatedDesignIndexRoute
+  AuthenticatedRehearseIndexRoute: typeof AuthenticatedRehearseIndexRoute
+  AuthenticatedReviewIndexRoute: typeof AuthenticatedReviewIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAssuranceRoute: AuthenticatedAssuranceRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
+  AuthenticatedDesignIdRoute: AuthenticatedDesignIdRoute,
+  AuthenticatedRehearseIdRoute: AuthenticatedRehearseIdRoute,
+  AuthenticatedReviewSessionIdRoute: AuthenticatedReviewSessionIdRoute,
+  AuthenticatedDesignIndexRoute: AuthenticatedDesignIndexRoute,
+  AuthenticatedRehearseIndexRoute: AuthenticatedRehearseIndexRoute,
+  AuthenticatedReviewIndexRoute: AuthenticatedReviewIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -243,13 +274,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AssuranceRoute: AssuranceRoute,
   AuthRoute: AuthRoute,
-  ReviewRoute: ReviewRoute,
-  DesignIdRoute: DesignIdRoute,
-  RehearseIdRoute: RehearseIdRoute,
-  DesignIndexRoute: DesignIndexRoute,
-  RehearseIndexRoute: RehearseIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
