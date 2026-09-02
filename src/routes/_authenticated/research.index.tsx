@@ -14,10 +14,10 @@ export const Route = createFileRoute("/_authenticated/research/")({
       {
         name: "description",
         content:
-          "Build and export pseudonymous datasets from rehearsal sessions, and review assurance evidence over published simulations.",
+          "Build, preview, and export pseudonymous datasets from authorized Classroom Coach rehearsal sessions.",
       },
       { property: "og:title", content: "Research Terminal — Classroom Coach" },
-      { property: "og:description", content: "Dataset building and assurance evidence over rehearsal data." },
+      { property: "og:description", content: "Build and export pseudonymous research datasets from rehearsal data." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
