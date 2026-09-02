@@ -538,8 +538,9 @@ function DesignReview() {
                   <div className="mt-3">
                     <SourceChips sources={["Interaction Boundaries", "Relational Consequences"]} />
                   </div>
-                </div>
-              </Section>
+                  </div>
+                </Section>
+                </>
               )}
 
               <Section title="Opening moment" description="How the situation begins, mid-action.">
