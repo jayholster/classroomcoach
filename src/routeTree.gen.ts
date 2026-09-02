@@ -11,14 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AssuranceRouteImport } from './routes/assurance'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as ReviewRouteImport } from './routes/review'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
-import { Route as DesignIndexRouteImport } from './routes/design.index'
-import { Route as DesignIdRouteImport } from './routes/design.$id'
-import { Route as RehearseIndexRouteImport } from './routes/rehearse.index'
-import { Route as RehearseIdRouteImport } from './routes/rehearse.$id'
+import { Route as AuthenticatedDesignIndexRouteImport } from './routes/_authenticated/design.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,19 +24,9 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AssuranceRoute = AssuranceRouteImport.update({
-  id: '/assurance',
-  path: '/assurance',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReviewRoute = ReviewRouteImport.update({
-  id: '/review',
-  path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
@@ -49,109 +34,51 @@ const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   path: '/library',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const DesignIndexRoute = DesignIndexRouteImport.update({
-  id: '/design/',
-  path: '/design/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DesignIdRoute = DesignIdRouteImport.update({
-  id: '/design/$id',
-  path: '/design/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RehearseIndexRoute = RehearseIndexRouteImport.update({
-  id: '/rehearse/',
-  path: '/rehearse/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RehearseIdRoute = RehearseIdRouteImport.update({
-  id: '/rehearse/$id',
-  path: '/rehearse/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const AuthenticatedDesignIndexRoute =
+  AuthenticatedDesignIndexRouteImport.update({
+    id: '/design/',
+    path: '/design/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/assurance': typeof AssuranceRoute
   '/auth': typeof AuthRoute
-  '/review': typeof ReviewRoute
   '/library': typeof AuthenticatedLibraryRoute
-  '/design/$id': typeof DesignIdRoute
-  '/rehearse/$id': typeof RehearseIdRoute
-  '/design/': typeof DesignIndexRoute
-  '/rehearse/': typeof RehearseIndexRoute
+  '/design/': typeof AuthenticatedDesignIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/assurance': typeof AssuranceRoute
   '/auth': typeof AuthRoute
-  '/review': typeof ReviewRoute
   '/library': typeof AuthenticatedLibraryRoute
-  '/design/$id': typeof DesignIdRoute
-  '/rehearse/$id': typeof RehearseIdRoute
-  '/design': typeof DesignIndexRoute
-  '/rehearse': typeof RehearseIndexRoute
+  '/design': typeof AuthenticatedDesignIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/assurance': typeof AssuranceRoute
   '/auth': typeof AuthRoute
-  '/review': typeof ReviewRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
-  '/design/$id': typeof DesignIdRoute
-  '/rehearse/$id': typeof RehearseIdRoute
-  '/design/': typeof DesignIndexRoute
-  '/rehearse/': typeof RehearseIndexRoute
+  '/_authenticated/design/': typeof AuthenticatedDesignIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/assurance'
-    | '/auth'
-    | '/review'
-    | '/library'
-    | '/design/$id'
-    | '/rehearse/$id'
-    | '/design/'
-    | '/rehearse/'
+  fullPaths: '/' | '/auth' | '/library' | '/design/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/assurance'
-    | '/auth'
-    | '/review'
-    | '/library'
-    | '/design/$id'
-    | '/rehearse/$id'
-    | '/design'
-    | '/rehearse'
+  to: '/' | '/auth' | '/library' | '/design'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/assurance'
     | '/auth'
-    | '/review'
     | '/_authenticated/library'
-    | '/design/$id'
-    | '/rehearse/$id'
-    | '/design/'
-    | '/rehearse/'
+    | '/_authenticated/design/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AssuranceRoute: typeof AssuranceRoute
   AuthRoute: typeof AuthRoute
-  ReviewRoute: typeof ReviewRoute
-  DesignIdRoute: typeof DesignIdRoute
-  RehearseIdRoute: typeof RehearseIdRoute
-  DesignIndexRoute: typeof DesignIndexRoute
-  RehearseIndexRoute: typeof RehearseIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -170,25 +97,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/assurance': {
-      id: '/assurance'
-      path: '/assurance'
-      fullPath: '/assurance'
-      preLoaderRoute: typeof AssuranceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/review': {
-      id: '/review'
-      path: '/review'
-      fullPath: '/review'
-      preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/library': {
@@ -198,43 +111,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/design/': {
-      id: '/design/'
+    '/_authenticated/design/': {
+      id: '/_authenticated/design/'
       path: '/design'
       fullPath: '/design/'
-      preLoaderRoute: typeof DesignIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/design/$id': {
-      id: '/design/$id'
-      path: '/design/$id'
-      fullPath: '/design/$id'
-      preLoaderRoute: typeof DesignIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rehearse/': {
-      id: '/rehearse/'
-      path: '/rehearse'
-      fullPath: '/rehearse/'
-      preLoaderRoute: typeof RehearseIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rehearse/$id': {
-      id: '/rehearse/$id'
-      path: '/rehearse/$id'
-      fullPath: '/rehearse/$id'
-      preLoaderRoute: typeof RehearseIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedDesignIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
+  AuthenticatedDesignIndexRoute: typeof AuthenticatedDesignIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
+  AuthenticatedDesignIndexRoute: AuthenticatedDesignIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -243,13 +137,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AssuranceRoute: AssuranceRoute,
   AuthRoute: AuthRoute,
-  ReviewRoute: ReviewRoute,
-  DesignIdRoute: DesignIdRoute,
-  RehearseIdRoute: RehearseIdRoute,
-  DesignIndexRoute: DesignIndexRoute,
-  RehearseIndexRoute: RehearseIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
