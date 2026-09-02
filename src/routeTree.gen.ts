@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssuranceRouteImport } from './routes/assurance'
+import { Route as ReviewRouteImport } from './routes/review'
+import { Route as DesignIndexRouteImport } from './routes/design.index'
+import { Route as DesignIdRouteImport } from './routes/design.$id'
+import { Route as RehearseIndexRouteImport } from './routes/rehearse.index'
+import { Route as RehearseIdRouteImport } from './routes/rehearse.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssuranceRoute = AssuranceRouteImport.update({
+  id: '/assurance',
+  path: '/assurance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignIndexRoute = DesignIndexRouteImport.update({
+  id: '/design/',
+  path: '/design/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignIdRoute = DesignIdRouteImport.update({
+  id: '/design/$id',
+  path: '/design/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RehearseIndexRoute = RehearseIndexRouteImport.update({
+  id: '/rehearse/',
+  path: '/rehearse/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RehearseIdRoute = RehearseIdRouteImport.update({
+  id: '/rehearse/$id',
+  path: '/rehearse/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assurance': typeof AssuranceRoute
+  '/review': typeof ReviewRoute
+  '/design/$id': typeof DesignIdRoute
+  '/rehearse/$id': typeof RehearseIdRoute
+  '/design/': typeof DesignIndexRoute
+  '/rehearse/': typeof RehearseIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/assurance': typeof AssuranceRoute
+  '/review': typeof ReviewRoute
+  '/design/$id': typeof DesignIdRoute
+  '/rehearse/$id': typeof RehearseIdRoute
+  '/design': typeof DesignIndexRoute
+  '/rehearse': typeof RehearseIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assurance': typeof AssuranceRoute
+  '/review': typeof ReviewRoute
+  '/design/$id': typeof DesignIdRoute
+  '/rehearse/$id': typeof RehearseIdRoute
+  '/design/': typeof DesignIndexRoute
+  '/rehearse/': typeof RehearseIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/assurance'
+    | '/review'
+    | '/design/$id'
+    | '/rehearse/$id'
+    | '/design/'
+    | '/rehearse/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/assurance'
+    | '/review'
+    | '/design/$id'
+    | '/rehearse/$id'
+    | '/design'
+    | '/rehearse'
+  id:
+    | '__root__'
+    | '/'
+    | '/assurance'
+    | '/review'
+    | '/design/$id'
+    | '/rehearse/$id'
+    | '/design/'
+    | '/rehearse/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssuranceRoute: typeof AssuranceRoute
+  ReviewRoute: typeof ReviewRoute
+  DesignIdRoute: typeof DesignIdRoute
+  RehearseIdRoute: typeof RehearseIdRoute
+  DesignIndexRoute: typeof DesignIndexRoute
+  RehearseIndexRoute: typeof RehearseIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +130,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/assurance': {
+      id: '/assurance'
+      path: '/assurance'
+      fullPath: '/assurance'
+      preLoaderRoute: typeof AssuranceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design/': {
+      id: '/design/'
+      path: '/design'
+      fullPath: '/design/'
+      preLoaderRoute: typeof DesignIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design/$id': {
+      id: '/design/$id'
+      path: '/design/$id'
+      fullPath: '/design/$id'
+      preLoaderRoute: typeof DesignIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rehearse/': {
+      id: '/rehearse/'
+      path: '/rehearse'
+      fullPath: '/rehearse/'
+      preLoaderRoute: typeof RehearseIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rehearse/$id': {
+      id: '/rehearse/$id'
+      path: '/rehearse/$id'
+      fullPath: '/rehearse/$id'
+      preLoaderRoute: typeof RehearseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssuranceRoute: AssuranceRoute,
+  ReviewRoute: ReviewRoute,
+  DesignIdRoute: DesignIdRoute,
+  RehearseIdRoute: RehearseIdRoute,
+  DesignIndexRoute: DesignIndexRoute,
+  RehearseIndexRoute: RehearseIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
