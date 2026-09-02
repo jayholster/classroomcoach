@@ -53,6 +53,11 @@ export const startRehearsal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { scenarioId: string }) => input)
   .handler(async ({ data, context }) => {
+    const { resolveCaller } = await import("../server/orgContext.server");
+    const { appRelease } = await import("../server/env.server");
+    const caller = await resolveCaller(context.supabase, context.userId);
+    if (caller.status !== "active") throw new Error("This account is not active.");
+
     const { data: versionRow, error } = await context.supabase
       .from("scenario_versions")
       .select("id, version_label, spec, foundation_version, model_identifier, model_provider, model_config_id")
@@ -85,6 +90,8 @@ export const startRehearsal = createServerFn({ method: "POST" })
         scenario_id: data.scenarioId,
         scenario_version_id: version.id,
         scenario_title: (scenario as { title?: string } | null)?.title ?? spec.title,
+        organization_id: caller.organizationId,
+        app_release: appRelease(),
       })
       .select("id")
       .single();
@@ -94,7 +101,12 @@ export const startRehearsal = createServerFn({ method: "POST" })
     const state = initialState(spec);
     await context.supabase
       .from("simulation_states")
-      .insert({ session_id: sessionId, owner_id: context.userId, state });
+      .insert({
+        session_id: sessionId,
+        owner_id: context.userId,
+        state,
+        organization_id: caller.organizationId,
+      });
 
     await context.supabase.from("simulation_events").insert({
       session_id: sessionId,
@@ -112,6 +124,8 @@ export const startRehearsal = createServerFn({ method: "POST" })
       visible_response: spec.opening_moment,
       state_update: null,
       resulting_state: state,
+      organization_id: caller.organizationId,
+      app_release: appRelease(),
     });
 
     return { sessionId };
