@@ -8,6 +8,7 @@ import {
   applyStateUpdate,
   renderVisibleResponse,
   type ScenarioSpec,
+  type ReviewSynthesis,
   type SimState,
   type VisibleResponse,
 } from "../spec/schema";
@@ -153,7 +154,7 @@ export const getRehearsalSession = createServerFn({ method: "GET" })
         scenario_title: string;
         started_at: string;
         ended_at: string | null;
-        review: Record<string, unknown> | null;
+        review: ReviewSynthesis | null;
       },
       spec: ScenarioSpecSchema.parse((version as { spec?: unknown } | null)?.spec ?? {}),
       versionLabel: (version as { version_label?: string } | null)?.version_label ?? "",
