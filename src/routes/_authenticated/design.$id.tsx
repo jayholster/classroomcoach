@@ -379,6 +379,7 @@ function DesignReview() {
               )}
 
               {viewMode === "advanced" && (
+                <>
               <Section
                 title="What is known / hidden"
                 description="Latent information can emerge through interaction but should not be revealed before the situation makes it available."
