@@ -24,7 +24,7 @@ export const generateStructuredScenario = createServerFn({ method: "POST" })
 
     const { data: scenarioRow, error } = await context.supabase
       .from("scenarios")
-      .select("id, practice_purpose, practicing_role, setting_label, specifics")
+      .select("id, practice_purpose, practicing_role, setting_label, specifics, student_count, difficult_moment")
       .eq("id", data.scenarioId)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -33,6 +33,8 @@ export const generateStructuredScenario = createServerFn({ method: "POST" })
       practicing_role: string;
       setting_label: string;
       specifics: string;
+      student_count: number;
+      difficult_moment: string;
     } | null;
     if (!scenario) throw new Error("Simulation not found.");
 
@@ -52,11 +54,13 @@ export const generateStructuredScenario = createServerFn({ method: "POST" })
       config,
       system: GENERATION_SYSTEM,
       user: generationPrompt({
-        purpose: scenario.practice_purpose,
-        practicingRole: scenario.practicing_role,
-        setting: scenario.setting_label,
-        specifics: scenario.specifics,
-        foundation,
+         purpose: scenario.practice_purpose,
+         practicingRole: scenario.practicing_role,
+         setting: scenario.setting_label,
+         specifics: scenario.specifics,
+         studentCount: scenario.student_count,
+         difficultMoment: scenario.difficult_moment,
+         foundation,
         people,
         chunks,
       }),

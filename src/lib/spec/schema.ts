@@ -51,11 +51,20 @@ export const OpeningMomentSchema = z.object({
   observation: z.string().default(""),
 });
 
+export const DIFFICULT_MOMENT_IDS = [
+  "student-conflict",
+  "public-challenge",
+  "disengagement",
+  "boundary-safety",
+] as const;
+
 export const ScenarioSpecSchema = z.object({
   title: z.string().default("Untitled simulation"),
   subtitle: z.string().default(""),
   practice_goal: z.string().default(""),
   practicing_role: z.string().default(""),
+  student_count: z.number().int().min(1).max(3).default(2),
+  difficult_moment: z.union([z.enum(DIFFICULT_MOMENT_IDS), z.literal("")]).default(""),
   setting: z
     .object({ label: z.string().default(""), description: z.string().default("") })
     .default({ label: "", description: "" }),

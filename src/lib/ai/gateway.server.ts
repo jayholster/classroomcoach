@@ -15,6 +15,7 @@ import { classifyError, logEvent } from "../server/logger.server";
 import { ModelCallError, callModelText, type ModelConfig } from "./modelAdapter.server";
 
 export interface GatewayConfig extends ModelConfig {
+  turn_model?: string | null;
   timeout_ms: number;
   max_retries: number;
   max_concurrency: number;
@@ -130,18 +131,7 @@ async function callWithTimeout(
   system: string,
   user: string,
 ): Promise<{ text: string; inputTokens: number | null; outputTokens: number | null }> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Math.max(10_000, config.timeout_ms || 120_000));
-  try {
-    return await callModelText(config, system, user, controller.signal);
-  } catch (err) {
-    if (controller.signal.aborted) {
-      throw new ModelCallError("The AI service did not respond in time. Nothing was recorded — try again.", 504);
-    }
-    throw err;
-  } finally {
-    clearTimeout(timeout);
-  }
+  return callModelText(config, system, user);
 }
 
 /**
@@ -150,7 +140,10 @@ async function callWithTimeout(
  * left untouched.
  */
 export async function runModelCall<T>(input: RunModelCallInput<T>): Promise<RunModelCallResult<T>> {
-  const { config } = input;
+  const config = input.functionType === "turn" && input.config.turn_model
+    ? { ...input.config, model: input.config.turn_model }
+    : input.config;
+  const callInput = config === input.config ? input : { ...input, config };
   if (!acquire(config)) {
     return {
       ok: false,
@@ -168,27 +161,27 @@ export async function runModelCall<T>(input: RunModelCallInput<T>): Promise<RunM
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const attemptStarted = Date.now();
       try {
-        const first = await callWithTimeout(config, input.system, input.user);
+        const first = await callWithTimeout(config, callInput.system, callInput.user);
         let repaired = false;
         let parsed: T;
 
         try {
-          parsed = input.schema.parse(extractJson(first.text));
+          parsed = callInput.schema.parse(extractJson(first.text));
         } catch {
           // Exactly one controlled repair attempt.
           repaired = true;
           const repairPrompt =
-            `Your previous reply could not be used. ${input.repairHint ?? ""}\n` +
+            `Your previous reply could not be used. ${callInput.repairHint ?? ""}\n` +
             `Return the same content again as a single valid JSON object that exactly matches the required structure, and nothing else.\n\n` +
             `Previous reply:\n${first.text.slice(0, 6000)}`;
-          const second = await callWithTimeout(config, input.system, repairPrompt);
-          parsed = input.schema.parse(extractJson(second.text));
+          const second = await callWithTimeout(config, callInput.system, repairPrompt);
+          parsed = callInput.schema.parse(extractJson(second.text));
           first.outputTokens = (first.outputTokens ?? 0) + (second.outputTokens ?? 0);
           first.inputTokens = (first.inputTokens ?? 0) + (second.inputTokens ?? 0);
         }
 
         const latencyMs = Date.now() - attemptStarted;
-        await recordUsage(input as RunModelCallInput<unknown>, {
+        await recordUsage(callInput as RunModelCallInput<unknown>, {
           attempt,
           latencyMs,
           inputTokens: first.inputTokens,
@@ -197,15 +190,15 @@ export async function runModelCall<T>(input: RunModelCallInput<T>): Promise<RunM
           repaired,
         });
         logEvent({
-          kind: `model.${input.functionType}`,
+          kind: `model.${callInput.functionType}`,
           outcome: "ok",
           durationMs: latencyMs,
           model: config.model,
           provider: config.provider_type,
           attempt,
-          organizationId: input.organizationId,
-          userId: input.userId,
-          sessionId: input.sessionId ?? null,
+          organizationId: callInput.organizationId,
+          userId: callInput.userId,
+          sessionId: callInput.sessionId ?? null,
           repaired,
         });
         return { ok: true, value: parsed, repaired, latencyMs, model: config.model, provider: config.provider_type };
@@ -213,7 +206,7 @@ export async function runModelCall<T>(input: RunModelCallInput<T>): Promise<RunM
         lastError = classifyError(err);
         const retryable = err instanceof ModelCallError ? err.retryable : false;
         const attemptMs = Date.now() - attemptStarted;
-        await recordUsage(input as RunModelCallInput<unknown>, {
+        await recordUsage(callInput as RunModelCallInput<unknown>, {
           attempt,
           latencyMs: attemptMs,
           inputTokens: null,
@@ -224,7 +217,7 @@ export async function runModelCall<T>(input: RunModelCallInput<T>): Promise<RunM
           errorMessage: lastError.message,
         });
         logEvent({
-          kind: `model.${input.functionType}`,
+          kind: `model.${callInput.functionType}`,
           outcome: attempt < maxAttempts && retryable ? "retry" : "failure",
           durationMs: attemptMs,
           model: config.model,
@@ -233,9 +226,9 @@ export async function runModelCall<T>(input: RunModelCallInput<T>): Promise<RunM
           status: lastError.status,
           errorKind: lastError.kind,
           message: lastError.message,
-          organizationId: input.organizationId,
-          userId: input.userId,
-          sessionId: input.sessionId ?? null,
+          organizationId: callInput.organizationId,
+          userId: callInput.userId,
+          sessionId: callInput.sessionId ?? null,
         });
         if (!retryable || attempt === maxAttempts) break;
         await sleep(Math.min(8000, 600 * 2 ** (attempt - 1)));
@@ -251,11 +244,11 @@ export async function runModelCall<T>(input: RunModelCallInput<T>): Promise<RunM
       ? "The AI response did not match the required structure. Nothing was recorded — you can try again."
       : (lastError?.message ?? "The AI service could not be reached.");
   logEvent({
-    kind: `model.${input.functionType}.gaveup`,
+    kind: `model.${callInput.functionType}.gaveup`,
     outcome: "failure",
     durationMs: Date.now() - started,
     errorKind: kind,
-    organizationId: input.organizationId,
+    organizationId: callInput.organizationId,
   });
   return { ok: false, error: message, errorKind: kind, retryable: kind === "rate_limit" || kind === "provider" };
 }
