@@ -26,6 +26,8 @@ export const Route = createFileRoute("/_authenticated/design/")({
   component: DesignStart,
 });
 
+const CUSTOM = "custom";
+
 const PRACTICE_FOCUSES = [
   { value: "responding-conflict", label: "Respond to student conflict", purpose: "Responding to conflict between students while keeping the learning purpose in view." },
   { value: "redirect-disengagement", label: "Redirect disengagement", purpose: "Redirect a disengaged student without singling them out in front of peers." },
@@ -42,6 +44,7 @@ const DIFFICULT_MOMENTS = [
   { value: "boundary-safety", label: "Boundary or safety", description: "A routine or safety boundary is being ignored." },
 ];
 const STUDENT_COUNTS = [1, 2, 3] as const;
+const OTHER_PEOPLE = ["Parent or guardian", "Administrator", "Another teacher", "Paraprofessional or aide"];
 
 interface PendingFile {
   file: File;
