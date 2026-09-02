@@ -12,7 +12,7 @@ const NAV = [
   { to: "/design", label: "Design Lab", roles: ["educator", "admin"] },
   { to: "/rehearse", label: "Rehearse", roles: ["educator", "admin", "learner"] },
   { to: "/review", label: "Review", roles: ["educator", "admin", "learner"] },
-  { to: "/assurance", label: "Assurance", roles: ["admin"] },
+  { to: "/assurance", label: "Assurance", roles: ["educator", "admin"] },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
