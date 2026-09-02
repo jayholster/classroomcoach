@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 import { FALLBACK_MODEL_CONFIG, type ModelConfig } from "./modelAdapter.server";
+import type { GatewayConfig } from "./gateway.server";
 
 export type Client = SupabaseClient<Database>;
 
@@ -120,4 +121,33 @@ export async function loadActiveModelConfig(supabase: Client): Promise<ModelConf
     .limit(1)
     .maybeSingle();
   return (data as unknown as ModelConfig | null) ?? FALLBACK_MODEL_CONFIG;
+}
+
+/**
+ * Loads the active model configuration together with its operational limits
+ * (timeout, retries, concurrency) and cost rates. Falls back to safe defaults
+ * so a missing configuration never takes the application down.
+ */
+export async function loadGatewayConfig(supabase: Client): Promise<GatewayConfig> {
+  const { data } = await supabase
+    .from("model_configurations")
+    .select(
+      "id, name, provider_type, model, endpoint, temperature, max_output, timeout_ms, max_retries, max_concurrency, input_cost_per_mtok, output_cost_per_mtok, configuration_version, credentials_reference",
+    )
+    .eq("active", true)
+    .limit(1)
+    .maybeSingle();
+  const row = data as unknown as Partial<GatewayConfig> | null;
+  const base = row ?? (FALLBACK_MODEL_CONFIG as Partial<GatewayConfig>);
+  return {
+    ...(FALLBACK_MODEL_CONFIG as ModelConfig),
+    ...base,
+    timeout_ms: base.timeout_ms ?? 120_000,
+    max_retries: base.max_retries ?? 2,
+    max_concurrency: base.max_concurrency ?? 4,
+    input_cost_per_mtok: base.input_cost_per_mtok ?? null,
+    output_cost_per_mtok: base.output_cost_per_mtok ?? null,
+    configuration_version: base.configuration_version ?? 1,
+    credentials_reference: base.credentials_reference ?? null,
+  } as GatewayConfig;
 }

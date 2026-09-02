@@ -14,30 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
-      assignments: {
+      after_action_reviews: {
         Row: {
           created_at: string
-          group_id: string | null
+          event_count: number
           id: string
+          model_identifier: string | null
+          model_provider: string | null
+          organization_id: string | null
           owner_id: string
-          scenario_version_id: string | null
-          title: string
+          session_id: string
+          synthesis: Json
         }
         Insert: {
           created_at?: string
-          group_id?: string | null
+          event_count?: number
           id?: string
+          model_identifier?: string | null
+          model_provider?: string | null
+          organization_id?: string | null
           owner_id: string
-          scenario_version_id?: string | null
-          title?: string
+          session_id: string
+          synthesis: Json
         }
         Update: {
           created_at?: string
+          event_count?: number
+          id?: string
+          model_identifier?: string | null
+          model_provider?: string | null
+          organization_id?: string | null
+          owner_id?: string
+          session_id?: string
+          synthesis?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "after_action_reviews_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "after_action_reviews_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "rehearsal_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assignments: {
+        Row: {
+          archived_at: string | null
+          closes_at: string | null
+          created_at: string
+          group_id: string | null
+          id: string
+          instructions: string
+          opens_at: string | null
+          organization_id: string | null
+          owner_id: string
+          scenario_version_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          closes_at?: string | null
+          created_at?: string
           group_id?: string | null
           id?: string
+          instructions?: string
+          opens_at?: string | null
+          organization_id?: string | null
+          owner_id: string
+          scenario_version_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          closes_at?: string | null
+          created_at?: string
+          group_id?: string | null
+          id?: string
+          instructions?: string
+          opens_at?: string | null
+          organization_id?: string | null
           owner_id?: string
           scenario_version_id?: string | null
+          status?: string
           title?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -45,6 +117,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "courses_or_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -65,6 +144,7 @@ export type Database = {
           id: string
           model_identifier: string | null
           model_provider: string | null
+          organization_id: string | null
           run_by: string
           state_update: Json | null
           visible_response: Json | null
@@ -77,6 +157,7 @@ export type Database = {
           id?: string
           model_identifier?: string | null
           model_provider?: string | null
+          organization_id?: string | null
           run_by: string
           state_update?: Json | null
           visible_response?: Json | null
@@ -89,6 +170,7 @@ export type Database = {
           id?: string
           model_identifier?: string | null
           model_provider?: string | null
+          organization_id?: string | null
           run_by?: string
           state_update?: Json | null
           visible_response?: Json | null
@@ -101,17 +183,74 @@ export type Database = {
             referencedRelation: "simulation_events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "assurance_runs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_events: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          object_id: string | null
+          object_type: string
+          object_version_id: string | null
+          organization_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          object_id?: string | null
+          object_type: string
+          object_version_id?: string | null
+          organization_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          object_id?: string | null
+          object_type?: string
+          object_version_id?: string | null
+          organization_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       context_documents: {
         Row: {
+          archived_at: string | null
           byte_size: number
+          content_hash: string | null
           created_at: string
           error_message: string | null
           extracted_chars: number
           file_name: string
           id: string
           mime_type: string
+          organization_id: string | null
           owner_id: string
           scenario_id: string
           status: string
@@ -119,13 +258,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           byte_size?: number
+          content_hash?: string | null
           created_at?: string
           error_message?: string | null
           extracted_chars?: number
           file_name: string
           id?: string
           mime_type?: string
+          organization_id?: string | null
           owner_id: string
           scenario_id: string
           status?: string
@@ -133,13 +275,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           byte_size?: number
+          content_hash?: string | null
           created_at?: string
           error_message?: string | null
           extracted_chars?: number
           file_name?: string
           id?: string
           mime_type?: string
+          organization_id?: string | null
           owner_id?: string
           scenario_id?: string
           status?: string
@@ -147,6 +292,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "context_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "context_documents_scenario_id_fkey"
             columns: ["scenario_id"]
@@ -158,24 +310,47 @@ export type Database = {
       }
       courses_or_groups: {
         Row: {
+          archived_at: string | null
           created_at: string
+          created_by: string | null
+          description: string
           id: string
           name: string
+          organization_id: string | null
           owner_id: string
+          updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
+          created_by?: string | null
+          description?: string
           id?: string
           name: string
+          organization_id?: string | null
           owner_id: string
+          updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
+          created_by?: string | null
+          description?: string
           id?: string
           name?: string
+          organization_id?: string | null
           owner_id?: string
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "courses_or_groups_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       document_chunks: {
         Row: {
@@ -185,6 +360,7 @@ export type Database = {
           created_at: string
           document_id: string
           id: string
+          organization_id: string | null
           owner_id: string
           scenario_id: string
           source_name: string
@@ -196,6 +372,7 @@ export type Database = {
           created_at?: string
           document_id: string
           id?: string
+          organization_id?: string | null
           owner_id: string
           scenario_id: string
           source_name: string
@@ -207,6 +384,7 @@ export type Database = {
           created_at?: string
           document_id?: string
           id?: string
+          organization_id?: string | null
           owner_id?: string
           scenario_id?: string
           source_name?: string
@@ -217,6 +395,13 @@ export type Database = {
             columns: ["document_id"]
             isOneToOne: false
             referencedRelation: "context_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_chunks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -234,6 +419,7 @@ export type Database = {
           event_id: string
           id: string
           note: string | null
+          organization_id: string | null
           reason: string
           session_id: string
           status: string
@@ -244,6 +430,7 @@ export type Database = {
           event_id: string
           id?: string
           note?: string | null
+          organization_id?: string | null
           reason: string
           session_id: string
           status?: string
@@ -254,6 +441,7 @@ export type Database = {
           event_id?: string
           id?: string
           note?: string | null
+          organization_id?: string | null
           reason?: string
           session_id?: string
           status?: string
@@ -265,6 +453,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "simulation_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flags_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -312,42 +507,379 @@ export type Database = {
         }
         Relationships: []
       }
-      model_configurations: {
+      foundation_versions: {
         Row: {
           active: boolean
           created_at: string
-          endpoint: string | null
+          created_by: string | null
           id: string
-          max_output: number | null
-          model: string
-          name: string
-          provider_type: string
-          temperature: number | null
-          updated_at: string
+          notes: string
+          resources: Json
+          version: string
         }
         Insert: {
           active?: boolean
           created_at?: string
-          endpoint?: string | null
+          created_by?: string | null
           id?: string
-          max_output?: number | null
-          model: string
-          name: string
-          provider_type?: string
-          temperature?: number | null
-          updated_at?: string
+          notes?: string
+          resources?: Json
+          version: string
         }
         Update: {
           active?: boolean
           created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string
+          resources?: Json
+          version?: string
+        }
+        Relationships: []
+      }
+      group_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          group_id: string
+          id: string
+          invited_by: string | null
+          organization_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          group_id: string
+          id?: string
+          invited_by?: string | null
+          organization_id: string
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          group_id?: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_invitations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "courses_or_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_memberships: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          organization_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          organization_id: string
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          organization_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_memberships_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "courses_or_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      model_configurations: {
+        Row: {
+          active: boolean
+          configuration_version: number
+          created_at: string
+          credentials_reference: string | null
+          endpoint: string | null
+          id: string
+          input_cost_per_mtok: number | null
+          max_concurrency: number
+          max_output: number | null
+          max_retries: number
+          model: string
+          name: string
+          output_cost_per_mtok: number | null
+          provider_type: string
+          temperature: number | null
+          timeout_ms: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          configuration_version?: number
+          created_at?: string
+          credentials_reference?: string | null
           endpoint?: string | null
           id?: string
+          input_cost_per_mtok?: number | null
+          max_concurrency?: number
           max_output?: number | null
-          model?: string
-          name?: string
+          max_retries?: number
+          model: string
+          name: string
+          output_cost_per_mtok?: number | null
           provider_type?: string
           temperature?: number | null
+          timeout_ms?: number
           updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          configuration_version?: number
+          created_at?: string
+          credentials_reference?: string | null
+          endpoint?: string | null
+          id?: string
+          input_cost_per_mtok?: number | null
+          max_concurrency?: number
+          max_output?: number | null
+          max_retries?: number
+          model?: string
+          name?: string
+          output_cost_per_mtok?: number | null
+          provider_type?: string
+          temperature?: number | null
+          timeout_ms?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      model_usage_events: {
+        Row: {
+          attempt: number
+          configuration_version: number | null
+          created_at: string
+          error_kind: string | null
+          error_message: string | null
+          estimated_cost_usd: number | null
+          function_type: string
+          id: string
+          input_tokens: number | null
+          latency_ms: number | null
+          model_config_id: string | null
+          model_identifier: string
+          organization_id: string | null
+          output_tokens: number | null
+          provider_type: string
+          repaired: boolean
+          scenario_id: string | null
+          session_id: string | null
+          success: boolean
+          user_id: string | null
+        }
+        Insert: {
+          attempt?: number
+          configuration_version?: number | null
+          created_at?: string
+          error_kind?: string | null
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          function_type: string
+          id?: string
+          input_tokens?: number | null
+          latency_ms?: number | null
+          model_config_id?: string | null
+          model_identifier?: string
+          organization_id?: string | null
+          output_tokens?: number | null
+          provider_type?: string
+          repaired?: boolean
+          scenario_id?: string | null
+          session_id?: string | null
+          success?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          attempt?: number
+          configuration_version?: number | null
+          created_at?: string
+          error_kind?: string | null
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          function_type?: string
+          id?: string
+          input_tokens?: number | null
+          latency_ms?: number | null
+          model_config_id?: string | null
+          model_identifier?: string
+          organization_id?: string | null
+          output_tokens?: number | null
+          provider_type?: string
+          repaired?: boolean
+          scenario_id?: string | null
+          session_id?: string | null
+          success?: boolean
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_usage_events_model_config_id_fkey"
+            columns: ["model_config_id"]
+            isOneToOne: false
+            referencedRelation: "model_configurations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "model_usage_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "model_usage_events_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "scenarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "model_usage_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "rehearsal_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_memberships: {
+        Row: {
+          created_at: string
+          id: string
+          is_owner: boolean
+          organization_id: string
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_owner?: boolean
+          organization_id: string
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_owner?: boolean
+          organization_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          document_retention_days: number | null
+          export_retention_days: number | null
+          id: string
+          name: string
+          session_retention_days: number | null
+          slug: string
+          updated_at: string
+          usage_limit_enabled: boolean
+          usage_limit_usd: number | null
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_retention_days?: number | null
+          export_retention_days?: number | null
+          id?: string
+          name: string
+          session_retention_days?: number | null
+          slug: string
+          updated_at?: string
+          usage_limit_enabled?: boolean
+          usage_limit_usd?: number | null
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_retention_days?: number | null
+          export_retention_days?: number | null
+          id?: string
+          name?: string
+          session_retention_days?: number | null
+          slug?: string
+          updated_at?: string
+          usage_limit_enabled?: boolean
+          usage_limit_usd?: number | null
         }
         Relationships: []
       }
@@ -364,6 +896,7 @@ export type Database = {
           knows: string[]
           name: string
           participant_type: string
+          profile_version: number
           ses: string
           source_reference: string
           tendencies: string[]
@@ -382,6 +915,7 @@ export type Database = {
           knows?: string[]
           name: string
           participant_type: string
+          profile_version?: number
           ses?: string
           source_reference?: string
           tendencies?: string[]
@@ -400,6 +934,7 @@ export type Database = {
           knows?: string[]
           name?: string
           participant_type?: string
+          profile_version?: number
           ses?: string
           source_reference?: string
           tendencies?: string[]
@@ -414,53 +949,88 @@ export type Database = {
           display_name: string | null
           email: string | null
           id: string
+          status: string
+          updated_at: string
         }
         Insert: {
           created_at?: string
           display_name?: string | null
           email?: string | null
           id: string
+          status?: string
+          updated_at?: string
         }
         Update: {
           created_at?: string
           display_name?: string | null
           email?: string | null
           id?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
       rehearsal_sessions: {
         Row: {
+          app_release: string | null
+          assignment_id: string | null
           ended_at: string | null
+          foundation_version: string
           id: string
+          organization_id: string | null
           owner_id: string
           review: Json | null
           scenario_id: string
           scenario_title: string
           scenario_version_id: string
           started_at: string
+          state_seq: number
         }
         Insert: {
+          app_release?: string | null
+          assignment_id?: string | null
           ended_at?: string | null
+          foundation_version?: string
           id?: string
+          organization_id?: string | null
           owner_id: string
           review?: Json | null
           scenario_id: string
           scenario_title?: string
           scenario_version_id: string
           started_at?: string
+          state_seq?: number
         }
         Update: {
+          app_release?: string | null
+          assignment_id?: string | null
           ended_at?: string | null
+          foundation_version?: string
           id?: string
+          organization_id?: string | null
           owner_id?: string
           review?: Json | null
           scenario_id?: string
           scenario_title?: string
           scenario_version_id?: string
           started_at?: string
+          state_seq?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "rehearsal_sessions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rehearsal_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rehearsal_sessions_scenario_id_fkey"
             columns: ["scenario_id"]
@@ -485,6 +1055,7 @@ export type Database = {
           known_information: string[]
           latent_information: string[]
           name: string
+          organization_id: string | null
           owner_id: string
           participant_id: string
           profile_source_id: string | null
@@ -500,6 +1071,7 @@ export type Database = {
           known_information?: string[]
           latent_information?: string[]
           name: string
+          organization_id?: string | null
           owner_id: string
           participant_id: string
           profile_source_id?: string | null
@@ -515,6 +1087,7 @@ export type Database = {
           known_information?: string[]
           latent_information?: string[]
           name?: string
+          organization_id?: string | null
           owner_id?: string
           participant_id?: string
           profile_source_id?: string | null
@@ -524,6 +1097,13 @@ export type Database = {
           scenario_version_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "scenario_participants_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "scenario_participants_scenario_version_id_fkey"
             columns: ["scenario_version_id"]
@@ -535,6 +1115,7 @@ export type Database = {
       }
       scenario_versions: {
         Row: {
+          app_release: string | null
           context_document_ids: string[]
           created_at: string
           created_by: string | null
@@ -544,12 +1125,15 @@ export type Database = {
           model_config_id: string | null
           model_identifier: string | null
           model_provider: string | null
+          organization_id: string | null
           owner_id: string
           scenario_id: string
+          source_references: Json
           spec: Json
           version_label: string
         }
         Insert: {
+          app_release?: string | null
           context_document_ids?: string[]
           created_at?: string
           created_by?: string | null
@@ -559,12 +1143,15 @@ export type Database = {
           model_config_id?: string | null
           model_identifier?: string | null
           model_provider?: string | null
+          organization_id?: string | null
           owner_id: string
           scenario_id: string
+          source_references?: Json
           spec: Json
           version_label: string
         }
         Update: {
+          app_release?: string | null
           context_document_ids?: string[]
           created_at?: string
           created_by?: string | null
@@ -574,8 +1161,10 @@ export type Database = {
           model_config_id?: string | null
           model_identifier?: string | null
           model_provider?: string | null
+          organization_id?: string | null
           owner_id?: string
           scenario_id?: string
+          source_references?: Json
           spec?: Json
           version_label?: string
         }
@@ -585,6 +1174,13 @@ export type Database = {
             columns: ["model_config_id"]
             isOneToOne: false
             referencedRelation: "model_configurations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scenario_versions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -598,12 +1194,16 @@ export type Database = {
       }
       scenarios: {
         Row: {
+          archived_at: string | null
           created_at: string
+          created_by: string | null
           draft_spec: Json | null
           generation_error: string | null
           id: string
+          is_sample: boolean
           model_identifier: string | null
           model_provider: string | null
+          organization_id: string | null
           owner_id: string
           practice_purpose: string
           practicing_role: string
@@ -615,12 +1215,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           draft_spec?: Json | null
           generation_error?: string | null
           id?: string
+          is_sample?: boolean
           model_identifier?: string | null
           model_provider?: string | null
+          organization_id?: string | null
           owner_id: string
           practice_purpose?: string
           practicing_role?: string
@@ -632,12 +1236,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           draft_spec?: Json | null
           generation_error?: string | null
           id?: string
+          is_sample?: boolean
           model_identifier?: string | null
           model_provider?: string | null
+          organization_id?: string | null
           owner_id?: string
           practice_purpose?: string
           practicing_role?: string
@@ -648,17 +1256,29 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "scenarios_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       simulation_events: {
         Row: {
+          app_release: string | null
           created_at: string
+          error_message: string | null
           foundation_version: string
           id: string
           kind: string
+          latency_ms: number | null
           model_config_id: string | null
           model_identifier: string | null
           model_provider: string | null
+          organization_id: string | null
           owner_id: string
           prior_state: Json | null
           resulting_state: Json | null
@@ -667,17 +1287,22 @@ export type Database = {
           sequence: number
           session_id: string
           state_update: Json | null
+          status: string
           user_action: string | null
           visible_response: Json | null
         }
         Insert: {
+          app_release?: string | null
           created_at?: string
+          error_message?: string | null
           foundation_version?: string
           id?: string
           kind?: string
+          latency_ms?: number | null
           model_config_id?: string | null
           model_identifier?: string | null
           model_provider?: string | null
+          organization_id?: string | null
           owner_id: string
           prior_state?: Json | null
           resulting_state?: Json | null
@@ -686,17 +1311,22 @@ export type Database = {
           sequence: number
           session_id: string
           state_update?: Json | null
+          status?: string
           user_action?: string | null
           visible_response?: Json | null
         }
         Update: {
+          app_release?: string | null
           created_at?: string
+          error_message?: string | null
           foundation_version?: string
           id?: string
           kind?: string
+          latency_ms?: number | null
           model_config_id?: string | null
           model_identifier?: string | null
           model_provider?: string | null
+          organization_id?: string | null
           owner_id?: string
           prior_state?: Json | null
           resulting_state?: Json | null
@@ -705,10 +1335,18 @@ export type Database = {
           sequence?: number
           session_id?: string
           state_update?: Json | null
+          status?: string
           user_action?: string | null
           visible_response?: Json | null
         }
         Relationships: [
+          {
+            foreignKeyName: "simulation_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "simulation_events_session_id_fkey"
             columns: ["session_id"]
@@ -721,26 +1359,39 @@ export type Database = {
       simulation_states: {
         Row: {
           id: string
+          organization_id: string | null
           owner_id: string
+          seq: number
           session_id: string
           state: Json
           updated_at: string
         }
         Insert: {
           id?: string
+          organization_id?: string | null
           owner_id: string
+          seq?: number
           session_id: string
           state: Json
           updated_at?: string
         }
         Update: {
           id?: string
+          organization_id?: string | null
           owner_id?: string
+          seq?: number
           session_id?: string
           state?: Json
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "simulation_states_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "simulation_states_session_id_fkey"
             columns: ["session_id"]
@@ -776,12 +1427,66 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_version: { Args: { _version: string }; Returns: boolean }
+      commit_simulation_turn: {
+        Args: {
+          _app_release?: string
+          _expected_sequence: number
+          _foundation_version: string
+          _model_config_id: string
+          _model_identifier: string
+          _model_provider: string
+          _prior_state: Json
+          _resulting_state: Json
+          _session_id: string
+          _state_update: Json
+          _user_action: string
+          _visible_response: Json
+        }
+        Returns: {
+          app_release: string | null
+          created_at: string
+          error_message: string | null
+          foundation_version: string
+          id: string
+          kind: string
+          latency_ms: number | null
+          model_config_id: string | null
+          model_identifier: string | null
+          model_provider: string | null
+          organization_id: string | null
+          owner_id: string
+          prior_state: Json | null
+          resulting_state: Json | null
+          scenario_id: string
+          scenario_version_id: string
+          sequence: number
+          session_id: string
+          state_update: Json | null
+          status: string
+          user_action: string | null
+          visible_response: Json | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "simulation_events"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      is_group_member: { Args: { _group: string }; Returns: boolean }
+      is_org_admin: { Args: { _org: string }; Returns: boolean }
+      is_org_member: { Args: { _org: string }; Returns: boolean }
+      org_role: {
+        Args: { _org: string }
+        Returns: Database["public"]["Enums"]["app_role"]
       }
     }
     Enums: {

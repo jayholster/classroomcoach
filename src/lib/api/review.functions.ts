@@ -11,16 +11,21 @@ export const generateReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { sessionId: string }) => input)
   .handler(async ({ data, context }) => {
-    const { loadActiveModelConfig } = await import("../ai/context.server");
+    const { loadGatewayConfig } = await import("../ai/context.server");
     const { REVIEW_SYSTEM, reviewPrompt } = await import("../ai/prompts.server");
-    const { callModelJson, ModelCallError } = await import("../ai/modelAdapter.server");
+    const { runModelCall } = await import("../ai/gateway.server");
 
     const { data: sessionRow } = await context.supabase
       .from("rehearsal_sessions")
-      .select("id, scenario_version_id, review")
+      .select("id, scenario_version_id, review, organization_id, scenario_id")
       .eq("id", data.sessionId)
       .maybeSingle();
-    const session = sessionRow as unknown as { scenario_version_id: string; review: unknown } | null;
+    const session = sessionRow as unknown as {
+      scenario_version_id: string;
+      scenario_id: string;
+      organization_id: string | null;
+      review: unknown;
+    } | null;
     if (!session) throw new Error("Rehearsal not found.");
 
     const [{ data: versionRow }, { data: events }, { data: state }, { data: flags }] = await Promise.all([
@@ -52,38 +57,36 @@ export const generateReview = createServerFn({ method: "POST" })
       return { ok: false as const, error: "This rehearsal has no recorded educator actions to review." };
     }
 
-    const config = await loadActiveModelConfig(context.supabase);
-    let review: ReviewSynthesis;
-    try {
-      const { value } = await callModelJson(
-        config,
-        REVIEW_SYSTEM,
-        reviewPrompt({
-          spec,
-          events: rows.map((r) => ({
-            sequence: r.sequence,
-            user_action: r.user_action,
-            changes: [
-              ...(r.state_update?.relationship_changes ?? []),
-              ...(r.state_update?.participation_changes ?? []),
-            ],
-            revealed: r.state_update?.newly_revealed ?? [],
-            unresolved: r.resulting_state?.unresolved ?? [],
-          })),
-          finalState,
-          flags: (flags ?? []) as unknown as { reason: string; note: string | null }[],
-        }),
-      );
-      review = ReviewSchema.parse(value);
-    } catch (err) {
-      return {
-        ok: false as const,
-        error:
-          err instanceof ModelCallError
-            ? err.message
-            : "The review could not be generated from the recorded events. Try again.",
-      };
+    const config = await loadGatewayConfig(context.supabase);
+    const result = await runModelCall({
+      supabase: context.supabase,
+      config,
+      system: REVIEW_SYSTEM,
+      user: reviewPrompt({
+        spec,
+        events: rows.map((r) => ({
+          sequence: r.sequence,
+          user_action: r.user_action,
+          changes: [...(r.state_update?.relationship_changes ?? []), ...(r.state_update?.participation_changes ?? [])],
+          revealed: r.state_update?.newly_revealed ?? [],
+          unresolved: r.resulting_state?.unresolved ?? [],
+        })),
+        finalState,
+        flags: (flags ?? []) as unknown as { reason: string; note: string | null }[],
+      }),
+      schema: ReviewSchema,
+      functionType: "review",
+      userId: context.userId,
+      organizationId: session.organization_id,
+      sessionId: data.sessionId,
+      scenarioId: session.scenario_id,
+      repairHint: "Every point must cite a turn number from the recorded events.",
+    });
+
+    if (!result.ok) {
+      return { ok: false as const, error: result.error, retryable: result.retryable };
     }
+    const review: ReviewSynthesis = result.value;
 
     await context.supabase
       .from("rehearsal_sessions")

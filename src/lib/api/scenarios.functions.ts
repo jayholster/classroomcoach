@@ -29,7 +29,9 @@ export const listScenarios = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("scenarios")
       .select(SCENARIO_COLUMNS)
-      .order("updated_at", { ascending: false });
+      .is("archived_at", null)
+      .order("updated_at", { ascending: false })
+      .limit(200);
     if (error) throw new Error(error.message);
     const scenarios = (data ?? []) as unknown as ScenarioRow[];
     const { data: versions } = await context.supabase
@@ -53,10 +55,17 @@ export const createScenario = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { purpose: string; practicingRole: string; setting: string; specifics: string }) => input)
   .handler(async ({ data, context }) => {
+    const { resolveCaller, requireAuthoring } = await import("../server/orgContext.server");
+    const { writeAudit } = await import("../server/audit.server");
+    const caller = await resolveCaller(context.supabase, context.userId);
+    const organizationId = requireAuthoring(caller);
+
     const { data: row, error } = await context.supabase
       .from("scenarios")
       .insert({
         owner_id: context.userId,
+        organization_id: organizationId,
+        created_by: context.userId,
         title: data.purpose.slice(0, 80) || "Untitled simulation",
         practice_purpose: data.purpose,
         practicing_role: data.practicingRole,
@@ -67,7 +76,17 @@ export const createScenario = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
-    return { id: (row as { id: string }).id };
+    const id = (row as { id: string }).id;
+    await writeAudit(context.supabase, {
+      action: "scenario.created",
+      objectType: "scenario",
+      objectId: id,
+      organizationId,
+      actorId: context.userId,
+      actorEmail: caller.email,
+      metadata: { setting: data.setting },
+    });
+    return { id };
   });
 
 export const getScenario = createServerFn({ method: "GET" })
@@ -162,12 +181,33 @@ export const saveDraftSpec = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Archives a simulation. Published versions, rehearsals and event logs stay
+ * intact for audit and research; the simulation simply leaves the library.
+ */
 export const deleteScenario = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("scenarios").delete().eq("id", data.id);
+    const { resolveCaller, requireAuthoring } = await import("../server/orgContext.server");
+    const { writeAudit } = await import("../server/audit.server");
+    const caller = await resolveCaller(context.supabase, context.userId);
+    const organizationId = requireAuthoring(caller);
+
+    const { error } = await context.supabase
+      .from("scenarios")
+      .update({ archived_at: new Date().toISOString(), status: "Archived" })
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
+
+    await writeAudit(context.supabase, {
+      action: "scenario.archived",
+      objectType: "scenario",
+      objectId: data.id,
+      organizationId,
+      actorId: context.userId,
+      actorEmail: caller.email,
+    });
     return { ok: true };
   });
 
@@ -176,6 +216,12 @@ export const publishVersion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data, context }) => {
+    const { resolveCaller, requireAuthoring } = await import("../server/orgContext.server");
+    const { writeAudit } = await import("../server/audit.server");
+    const { appRelease } = await import("../server/env.server");
+    const caller = await resolveCaller(context.supabase, context.userId);
+    const organizationId = requireAuthoring(caller);
+
     const { data: scenario, error } = await context.supabase
       .from("scenarios")
       .select("id, title, subtitle, draft_spec, model_provider, model_identifier")
@@ -227,6 +273,8 @@ export const publishVersion = createServerFn({ method: "POST" })
         model_provider: row.model_provider ?? config.provider_type,
         model_identifier: row.model_identifier ?? config.model,
         model_config_id: config.id.startsWith("00000000") ? null : config.id,
+        organization_id: organizationId,
+        app_release: appRelease(),
       })
       .select("id, version_label")
       .single();
@@ -248,12 +296,27 @@ export const publishVersion = createServerFn({ method: "POST" })
           known_information: p.known_information,
           latent_information: p.latent_information,
           provenance: p.provenance,
+          organization_id: organizationId,
         })),
       );
       if (participantError) throw new Error(participantError.message);
     }
 
     await context.supabase.from("scenarios").update({ status: "Published" }).eq("id", data.id);
+    await writeAudit(context.supabase, {
+      action: "scenario.published",
+      objectType: "scenario",
+      objectId: data.id,
+      objectVersionId: versionId,
+      organizationId,
+      actorId: context.userId,
+      actorEmail: caller.email,
+      metadata: {
+        version_label: versionLabel,
+        foundation_version: foundationVersion(foundation),
+        model_identifier: row.model_identifier ?? config.model,
+      },
+    });
     return { versionId, versionLabel: (version as { version_label: string }).version_label };
   });
 

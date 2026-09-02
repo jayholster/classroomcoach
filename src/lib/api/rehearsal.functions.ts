@@ -172,24 +172,40 @@ export const getRehearsalSession = createServerFn({ method: "GET" })
     };
   });
 
-/** Advances the simulation by one turn and logs it as a persistent event. */
+/**
+ * Advances the simulation by one turn.
+ *
+ * The model call happens first and is fully validated. Only once a usable
+ * response exists is anything written, and that write (event + state) is
+ * committed atomically by `commit_simulation_turn`, which also rejects a
+ * turn that would collide with one recorded concurrently. A failed model
+ * call therefore leaves the rehearsal exactly as it was.
+ */
 export const submitRehearsalTurn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { sessionId: string; action: string }) => input)
+  .inputValidator((input: { sessionId: string; action: string }) => {
+    const action = input.action.trim();
+    if (!action) throw new Error("Write what you would say or do before submitting.");
+    if (action.length > 4000) throw new Error("That response is too long. Keep it under 4000 characters.");
+    return { sessionId: input.sessionId, action };
+  })
   .handler(async ({ data, context }) => {
-    const { loadFoundation, loadActiveModelConfig } = await import("../ai/context.server");
+    const { loadFoundation, loadGatewayConfig } = await import("../ai/context.server");
     const { TURN_SYSTEM, turnPrompt } = await import("../ai/prompts.server");
-    const { callModelJson, ModelCallError } = await import("../ai/modelAdapter.server");
+    const { runModelCall } = await import("../ai/gateway.server");
+    const { logEvent } = await import("../server/logger.server");
+    const { appRelease } = await import("../server/env.server");
 
     const { data: sessionRow } = await context.supabase
       .from("rehearsal_sessions")
-      .select("id, scenario_id, scenario_version_id, ended_at")
+      .select("id, scenario_id, scenario_version_id, ended_at, organization_id")
       .eq("id", data.sessionId)
       .maybeSingle();
     const session = sessionRow as unknown as {
       scenario_id: string;
       scenario_version_id: string;
       ended_at: string | null;
+      organization_id: string | null;
     } | null;
     if (!session) throw new Error("Rehearsal not found.");
     if (session.ended_at) throw new Error("This rehearsal has already ended.");
@@ -224,58 +240,74 @@ export const submitRehearsalTurn = createServerFn({ method: "POST" })
 
     const [foundation, config] = await Promise.all([
       loadFoundation(context.supabase),
-      loadActiveModelConfig(context.supabase),
+      loadGatewayConfig(context.supabase),
     ]);
 
-    let output;
-    try {
-      const { value } = await callModelJson(
-        config,
-        TURN_SYSTEM,
-        turnPrompt({ foundation, spec, state, history, userAction: data.action }),
-      );
-      output = TurnOutputSchema.parse(value);
-    } catch (err) {
-      const message =
-        err instanceof ModelCallError
-          ? err.message
-          : "The simulation response could not be read. Nothing was recorded — try responding again.";
-      return { ok: false as const, error: message };
+    const result = await runModelCall({
+      supabase: context.supabase,
+      config,
+      system: TURN_SYSTEM,
+      user: turnPrompt({ foundation, spec, state, history, userAction: data.action }),
+      schema: TurnOutputSchema,
+      functionType: "turn",
+      userId: context.userId,
+      organizationId: session.organization_id,
+      sessionId: data.sessionId,
+      scenarioId: session.scenario_id,
+      repairHint: "It must contain visible_response and state_update exactly as specified.",
+    });
+
+    if (!result.ok) {
+      return { ok: false as const, error: result.error, retryable: result.retryable };
     }
 
-    const nextState = applyStateUpdate(state, output.state_update);
-    const sequence = (priorEvents[priorEvents.length - 1]?.sequence ?? 0) + 1;
+    const output = result.value;
+    const stateUpdate = {
+      relationship_changes: output.state_update.relationship_changes ?? [],
+      participation_changes: output.state_update.participation_changes ?? [],
+      newly_revealed: output.state_update.newly_revealed ?? [],
+      resolved: output.state_update.resolved ?? [],
+      new_unresolved: output.state_update.new_unresolved ?? [],
+    };
+    const nextState = applyStateUpdate(state, stateUpdate);
+    const expectedSequence = (priorEvents[priorEvents.length - 1]?.sequence ?? 0) + 1;
 
-    const { data: eventRow, error: eventError } = await context.supabase
-      .from("simulation_events")
-      .insert({
-        session_id: data.sessionId,
-        owner_id: context.userId,
-        sequence,
-        kind: "turn",
-        scenario_id: session.scenario_id,
-        scenario_version_id: session.scenario_version_id,
-        foundation_version: (versionRow as { foundation_version?: string } | null)?.foundation_version ?? "",
-        model_provider: config.provider_type,
-        model_identifier: config.model,
-        model_config_id: (versionRow as { model_config_id?: string | null } | null)?.model_config_id ?? null,
-        prior_state: state,
-        user_action: data.action,
-        visible_response: output.visible_response,
-        state_update: output.state_update,
-        resulting_state: nextState,
-      })
-      .select(EVENT_COLUMNS)
-      .single();
-    if (eventError) throw new Error(eventError.message);
+    const { data: committed, error: commitError } = await context.supabase.rpc("commit_simulation_turn", {
+      _session_id: data.sessionId,
+      _expected_sequence: expectedSequence,
+      _user_action: data.action,
+      _visible_response: output.visible_response as never,
+      _state_update: stateUpdate as never,
+      _resulting_state: nextState as never,
+      _foundation_version: (versionRow as { foundation_version?: string } | null)?.foundation_version ?? "",
+      _model_provider: config.provider_type,
+      _model_identifier: config.model,
+      _model_config_id: ((versionRow as { model_config_id?: string | null } | null)?.model_config_id ??
+        undefined) as unknown as string,
+      _prior_state: state as never,
+      _app_release: appRelease(),
+    });
 
-    await context.supabase
-      .from("simulation_states")
-      .update({ state: nextState, updated_at: new Date().toISOString() })
-      .eq("session_id", data.sessionId);
+    if (commitError) {
+      logEvent({
+        kind: "turn.commit",
+        outcome: "failure",
+        errorKind: "database",
+        message: commitError.message,
+        sessionId: data.sessionId,
+        organizationId: session.organization_id,
+      });
+      return { ok: false as const, error: commitError.message, retryable: true };
+    }
 
-    return { ok: true as const, event: eventRow as unknown as SessionEvent, state: nextState };
+    return {
+      ok: true as const,
+      event: committed as unknown as SessionEvent,
+      state: nextState,
+      repaired: result.repaired,
+    };
   });
+
 
 export const endRehearsal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
