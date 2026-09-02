@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/research/$projectId")({
         content: "Build, inspect, and export a pseudonymous dataset from an authorized Classroom Coach research scope.",
       },
       { property: "og:title", content: "Dataset workspace — Classroom Coach Research" },
-      { property: "og:description", content: "Dataset builder, event explorer, and assurance evidence for one authorized scope." }
+      { property: "og:description", content: "Dataset builder, event explorer, and assurance evidence for one authorized scope." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
