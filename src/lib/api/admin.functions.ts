@@ -66,11 +66,14 @@ export const activateModelConfiguration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (!isAdmin) throw new Error("Only an administrator can change the active model.");
+    const { data: adminRole } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!adminRole) throw new Error("Only an administrator can change the active model.");
+
     await context.supabase.from("model_configurations").update({ active: false }).neq("id", data.id);
     const { error } = await context.supabase
       .from("model_configurations")
