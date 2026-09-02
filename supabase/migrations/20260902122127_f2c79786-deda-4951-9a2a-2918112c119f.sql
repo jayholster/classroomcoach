@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.commit_simulation_turn(uuid, integer, text, jsonb, jsonb, jsonb, text, text, text, uuid, jsonb, text) FROM authenticated;
