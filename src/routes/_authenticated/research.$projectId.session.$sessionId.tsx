@@ -129,9 +129,9 @@ function EventExplorer() {
            const eventAnnotations = annotations.filter((annotation) => annotation.event_id === event.id);
            const scene = (event.resulting_state as { scene?: { label?: string; description?: string }; present_participants?: string[] } | null);
            return (
-             <article key={event.id} className="border-l-2 border-border pl-5">
-               <div className="flex flex-wrap items-center gap-2">
-                 <span className="text-xs font-semibold uppercase tracking-wide text-primary">{event.kind === "scene_change" ? "Scene change" : `Turn ${event.sequence}`}</span>
+              <article key={event.id} className="border-l-2 border-border pl-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-primary">{event.kind === "scene_change" ? "Scene change" : `Turn ${event.sequence}`}</span>
                  <Chip>{event.status}</Chip>
                  {eventFlags.length > 0 && <Chip tone="warn">{eventFlags.length} flag{eventFlags.length === 1 ? "" : "s"}</Chip>}
                  <span className="text-xs text-muted-foreground">{new Date(event.created_at).toLocaleString()}</span>

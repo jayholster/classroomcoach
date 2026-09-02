@@ -134,10 +134,10 @@ export const TurnOutputSchema = z.object({
 export type TurnOutput = z.infer<typeof TurnOutputSchema>;
 
 /** Applies semantic constraints that JSON shape validation cannot express. */
-export function validateScenarioSpec(spec: ScenarioSpec): ScenarioSpec {
+export function validateScenarioSpec(spec: ScenarioSpec, expectedStudentCount = spec.student_count): ScenarioSpec {
   const students = spec.participants.filter((participant) => participant.role.toLowerCase().includes("student"));
-  if (students.length !== spec.student_count) {
-    throw new Error(`The scenario must contain exactly ${spec.student_count} student participants.`);
+  if (spec.student_count !== expectedStudentCount || students.length !== expectedStudentCount) {
+    throw new Error(`The scenario must contain exactly ${expectedStudentCount} student participants.`);
   }
   const names = spec.participants.map((participant) => participant.name.trim().toLowerCase());
   if (new Set(names).size !== names.length) throw new Error("Each published participant must have a unique name.");

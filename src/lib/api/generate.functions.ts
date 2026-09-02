@@ -82,7 +82,7 @@ export const generateStructuredScenario = createServerFn({ method: "POST" })
 
     let spec;
     try {
-      spec = validateScenarioSpec(result.value);
+      spec = validateScenarioSpec(result.value, scenario.student_count);
     } catch (validationError) {
       const message = (validationError as Error).message;
       await context.supabase.from("scenarios").update({ generation_error: message, status: "Needs Review" }).eq("id", data.scenarioId);

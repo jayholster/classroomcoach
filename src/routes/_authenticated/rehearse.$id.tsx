@@ -102,12 +102,17 @@ function RehearsePage() {
     if (!text.trim() || busy) return;
     setBusy(true);
     setError(null);
-    const action = text.trim();
-    const result = await submit({ data: { sessionId: id, action } });
-    if (!result.ok) setError(result.error);
-    else setText("");
-    await sessionQuery.refetch();
-    setBusy(false);
+    try {
+      const action = text.trim();
+      const result = await submit({ data: { sessionId: id, action } });
+      if (!result.ok) setError(result.error);
+      else setText("");
+      await sessionQuery.refetch();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const end = async () => {
@@ -213,7 +218,7 @@ function RehearsePage() {
               ) : (
               <div key={e.id} className="p-5 sm:p-6">
                 <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                  Turn {index + 1}
+                  Turn {e.sequence}
                 </p>
                 {e.user_action && (
                   <Message from="user" className="max-w-[92%] gap-1">
