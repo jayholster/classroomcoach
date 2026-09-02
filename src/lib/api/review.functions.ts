@@ -87,7 +87,7 @@ export const generateReview = createServerFn({ method: "POST" })
 
     await context.supabase
       .from("rehearsal_sessions")
-      .update({ review, reviewed_at: new Date().toISOString() })
+      .update({ review })
       .eq("id", data.sessionId);
 
     return { ok: true as const, review };
