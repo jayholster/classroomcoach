@@ -27,6 +27,9 @@ export type AuditAction =
   | "document.deleted"
   | "document.reprocessed"
   | "export.generated"
+  | "research.exported"
+  | "research.snapshot_created"
+  | "research.settings_updated"
   | "assurance.run"
   | "account.deletion_requested";
 

@@ -6,17 +6,28 @@ import { ScenarioSpecSchema, SimStateSchema, TurnOutputSchema, renderVisibleResp
 export const getMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const [{ data: profile }, { data: roles }] = await Promise.all([
+    const [{ data: profile }, { data: roles }, { data: scopes }, { data: memberships }] = await Promise.all([
       context.supabase.from("profiles").select("id, display_name, email").eq("id", context.userId).maybeSingle(),
       context.supabase.from("user_roles").select("role").eq("user_id", context.userId),
+      context.supabase.from("research_scopes").select("project_id").eq("user_id", context.userId),
+      context.supabase
+        .from("organization_memberships")
+        .select("role, is_owner")
+        .eq("user_id", context.userId)
+        .eq("status", "active"),
     ]);
+    const orgRows = (memberships ?? []) as { role: string; is_owner: boolean }[];
     return {
       id: context.userId,
       displayName: (profile as { display_name?: string | null } | null)?.display_name ?? null,
       email: (profile as { email?: string | null } | null)?.email ?? null,
       roles: ((roles ?? []) as { role: string }[]).map((r) => r.role),
+      organizationRole: orgRows[0]?.role ?? null,
+      isOrgAdmin: orgRows.some((r) => r.is_owner || r.role === "admin"),
+      hasResearchAccess: ((scopes ?? []) as { project_id: string }[]).length > 0,
     };
   });
+
 
 export const updateDisplayName = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

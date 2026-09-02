@@ -1,0 +1,38 @@
+CREATE SCHEMA IF NOT EXISTS private;
+REVOKE ALL ON SCHEMA private FROM PUBLIC, anon;
+GRANT USAGE ON SCHEMA private TO authenticated, service_role;
+
+ALTER FUNCTION public.is_org_member(uuid) SET SCHEMA private;
+ALTER FUNCTION public.is_org_admin(uuid) SET SCHEMA private;
+ALTER FUNCTION public.org_role(uuid) SET SCHEMA private;
+ALTER FUNCTION public.is_group_member(uuid) SET SCHEMA private;
+ALTER FUNCTION public.can_access_version(uuid) SET SCHEMA private;
+ALTER FUNCTION public.has_role(uuid, public.app_role) SET SCHEMA private;
+ALTER FUNCTION public.research_project_org(uuid) SET SCHEMA private;
+ALTER FUNCTION public.is_research_member(uuid) SET SCHEMA private;
+ALTER FUNCTION public.research_can_read_scenario(uuid) SET SCHEMA private;
+ALTER FUNCTION public.research_can_read_session(uuid) SET SCHEMA private;
+ALTER FUNCTION public.research_can_read_org(uuid) SET SCHEMA private;
+
+REVOKE EXECUTE ON FUNCTION private.is_org_member(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.is_org_admin(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.org_role(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.is_group_member(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.can_access_version(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.has_role(uuid, public.app_role) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.research_project_org(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.is_research_member(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.research_can_read_scenario(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.research_can_read_session(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.research_can_read_org(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION private.is_org_member(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION private.is_org_admin(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION private.org_role(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION private.is_group_member(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION private.can_access_version(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION private.has_role(uuid, public.app_role) TO service_role;
+GRANT EXECUTE ON FUNCTION private.research_project_org(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION private.is_research_member(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION private.research_can_read_scenario(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION private.research_can_read_session(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION private.research_can_read_org(uuid) TO service_role;
