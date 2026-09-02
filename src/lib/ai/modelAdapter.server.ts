@@ -13,6 +13,8 @@ export interface ModelUsageResult {
   text: string;
   inputTokens: number | null;
   outputTokens: number | null;
+  model?: string;
+  provider?: string;
 }
 
 export interface ModelConfig {
