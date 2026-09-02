@@ -420,3 +420,55 @@ export const updateCollectionSettings = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+/**
+ * Creates a study and grants the creating administrator an organization-wide
+ * scope, so the Research Terminal is reachable without direct database work.
+ */
+export const createResearchProject = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { name: string; description?: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { resolveCaller, requireAdmin } = await import("../server/orgContext.server");
+    const { writeAudit } = await import("../server/audit.server");
+    const caller = await resolveCaller(context.supabase, context.userId);
+    requireAdmin(caller);
+    if (!caller.organizationId) throw new Error("Your account is not attached to an organization yet.");
+
+    const name = data.name.trim();
+    if (!name) throw new Error("Give the study a name.");
+
+    const { data: row, error } = await context.supabase
+      .from("research_projects")
+      .insert({
+        organization_id: caller.organizationId,
+        name,
+        description: data.description?.trim() ?? "",
+        status: "active",
+        created_by: context.userId,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    const projectId = (row as { id: string }).id;
+
+    const { error: scopeError } = await context.supabase.from("research_scopes").insert({
+      project_id: projectId,
+      user_id: context.userId,
+      scope_type: "organization",
+      organization_id: caller.organizationId,
+      granted_by: context.userId,
+    });
+    if (scopeError) throw new Error(scopeError.message);
+
+    await writeAudit(context.supabase, {
+      action: "research.settings_updated",
+      objectType: "research_project",
+      objectId: projectId,
+      organizationId: caller.organizationId,
+      actorId: context.userId,
+      actorEmail: caller.email,
+      metadata: { created: true, name },
+    });
+    return { id: projectId };
+  });

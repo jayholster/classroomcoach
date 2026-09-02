@@ -13,6 +13,7 @@ const NAV = [
   { to: "/rehearse", label: "Rehearse", roles: ["educator", "admin", "learner"] },
   { to: "/review", label: "Review", roles: ["educator", "admin", "learner"] },
   { to: "/assurance", label: "Assurance", roles: ["educator", "admin"] },
+  { to: "/research", label: "Research", roles: [] },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -25,7 +26,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   // Until roles load, show the full set an educator sees; the server and RLS
   // remain the real gate, so a wrong guess here can never grant access.
   const roles = meQuery.data?.roles ?? ["educator"];
-  const visibleNav = NAV.filter((n) => n.roles.some((r) => roles.includes(r)));
+  const canSeeResearch = Boolean(meQuery.data?.hasResearchAccess) || Boolean(meQuery.data?.isOrgAdmin);
+  const visibleNav = NAV.filter((n) => (n.label === "Research" ? canSeeResearch : n.roles.some((r) => roles.includes(r))));
 
   const signOut = async () => {
     await supabase.auth.signOut();
