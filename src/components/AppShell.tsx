@@ -1,32 +1,25 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
-import { loadRole, saveRole, resetAll } from "@/lib/store";
-import type { Role } from "@/lib/types";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { type ReactNode } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
-  { to: "/", label: "Library" },
+  { to: "/library", label: "Library" },
   { to: "/design", label: "Design Lab" },
   { to: "/rehearse", label: "Rehearse" },
   { to: "/review", label: "Review" },
   { to: "/assurance", label: "Assurance" },
 ] as const;
 
-const ROLES: Role[] = ["Designer / Educator", "Learner", "Admin / Research"];
-
-export function useRole() {
-  const [role, setRole] = useState<Role>("Designer / Educator");
-  useEffect(() => {
-    setRole(loadRole());
-    const h = () => setRole(loadRole());
-    window.addEventListener("cc:store", h);
-    return () => window.removeEventListener("cc:store", h);
-  }, []);
-  return role;
-}
-
 export function AppShell({ children }: { children: ReactNode }) {
-  const role = useRole();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    void navigate({ to: "/auth" });
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -37,35 +30,26 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="text-sm text-muted-foreground">Configurable professional rehearsal</div>
           </div>
           <div className="flex items-center gap-3">
-            <label className="text-xs uppercase tracking-wide text-muted-foreground" htmlFor="role">
-              Role
-            </label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => saveRole(e.target.value as Role)}
-              className="rounded-sm border border-input bg-background px-2 py-1.5 text-sm"
-            >
-              {ROLES.map((r) => (
-                <option key={r}>{r}</option>
-              ))}
-            </select>
-            <button
-              onClick={() => {
-                if (confirm("Reset all prototype data?")) {
-                  resetAll();
-                  window.location.href = "/";
-                }
-              }}
-              className="rounded-sm border border-input px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted"
-            >
-              Reset
-            </button>
+            {user ? (
+              <>
+                <span className="text-xs text-muted-foreground">{user.email}</span>
+                <button
+                  onClick={() => void signOut()}
+                  className="rounded-sm border border-input px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <Link to="/auth" className="rounded-sm border border-input px-2 py-1.5 text-sm">
+                Sign in
+              </Link>
+            )}
           </div>
         </div>
         <nav className="mx-auto flex max-w-6xl gap-6 px-6">
           {NAV.map((n) => {
-            const active = n.to === "/" ? pathname === "/" : pathname.startsWith(n.to);
+            const active = pathname.startsWith(n.to);
             return (
               <Link
                 key={n.to}
@@ -136,6 +120,40 @@ export function Section({
       </div>
       {children}
     </section>
+  );
+}
+
+export function Drawer({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-primary/20" onClick={onClose}>
+      <div
+        className="h-full w-full max-w-md overflow-y-auto border-l border-border bg-card p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <h3 className="text-sm font-semibold text-primary">{title}</h3>
+          <button className="text-sm text-muted-foreground hover:text-foreground" onClick={onClose}>
+            Close
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function DetailList({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div className="mb-4">
+      <h4 className="text-xs uppercase tracking-wide text-muted-foreground">{label}</h4>
+      <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-foreground">
+        {items.length ? (
+          items.map((i) => <li key={i}>{i}</li>)
+        ) : (
+          <li className="text-muted-foreground">None recorded</li>
+        )}
+      </ul>
+    </div>
   );
 }
 

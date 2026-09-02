@@ -10,8 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AssuranceRouteImport } from './routes/assurance'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ReviewRouteImport } from './routes/review'
+import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as DesignIndexRouteImport } from './routes/design.index'
 import { Route as DesignIdRouteImport } from './routes/design.$id'
 import { Route as RehearseIndexRouteImport } from './routes/rehearse.index'
@@ -22,15 +25,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AssuranceRoute = AssuranceRouteImport.update({
   id: '/assurance',
   path: '/assurance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReviewRoute = ReviewRouteImport.update({
   id: '/review',
   path: '/review',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const DesignIndexRoute = DesignIndexRouteImport.update({
   id: '/design/',
@@ -56,7 +73,9 @@ const RehearseIdRoute = RehearseIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assurance': typeof AssuranceRoute
+  '/auth': typeof AuthRoute
   '/review': typeof ReviewRoute
+  '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof DesignIdRoute
   '/rehearse/$id': typeof RehearseIdRoute
   '/design/': typeof DesignIndexRoute
@@ -65,7 +84,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assurance': typeof AssuranceRoute
+  '/auth': typeof AuthRoute
   '/review': typeof ReviewRoute
+  '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof DesignIdRoute
   '/rehearse/$id': typeof RehearseIdRoute
   '/design': typeof DesignIndexRoute
@@ -74,8 +95,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/assurance': typeof AssuranceRoute
+  '/auth': typeof AuthRoute
   '/review': typeof ReviewRoute
+  '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof DesignIdRoute
   '/rehearse/$id': typeof RehearseIdRoute
   '/design/': typeof DesignIndexRoute
@@ -86,7 +110,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/assurance'
+    | '/auth'
     | '/review'
+    | '/library'
     | '/design/$id'
     | '/rehearse/$id'
     | '/design/'
@@ -95,7 +121,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/assurance'
+    | '/auth'
     | '/review'
+    | '/library'
     | '/design/$id'
     | '/rehearse/$id'
     | '/design'
@@ -103,8 +131,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/assurance'
+    | '/auth'
     | '/review'
+    | '/_authenticated/library'
     | '/design/$id'
     | '/rehearse/$id'
     | '/design/'
@@ -113,7 +144,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AssuranceRoute: typeof AssuranceRoute
+  AuthRoute: typeof AuthRoute
   ReviewRoute: typeof ReviewRoute
   DesignIdRoute: typeof DesignIdRoute
   RehearseIdRoute: typeof RehearseIdRoute
@@ -130,11 +163,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/assurance': {
       id: '/assurance'
       path: '/assurance'
       fullPath: '/assurance'
       preLoaderRoute: typeof AssuranceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/review': {
@@ -143,6 +190,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/review'
       preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/library': {
+      id: '/_authenticated/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof AuthenticatedLibraryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/design/': {
       id: '/design/'
@@ -175,9 +229,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AssuranceRoute: AssuranceRoute,
+  AuthRoute: AuthRoute,
   ReviewRoute: ReviewRoute,
   DesignIdRoute: DesignIdRoute,
   RehearseIdRoute: RehearseIdRoute,
