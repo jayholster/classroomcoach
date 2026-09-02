@@ -26,6 +26,8 @@ export const Route = createFileRoute("/_authenticated/design/")({
   component: DesignStart,
 });
 
+const CUSTOM = "custom";
+
 const PRACTICE_FOCUSES = [
   { value: "responding-conflict", label: "Respond to student conflict", purpose: "Responding to conflict between students while keeping the learning purpose in view." },
   { value: "redirect-disengagement", label: "Redirect disengagement", purpose: "Redirect a disengaged student without singling them out in front of peers." },
@@ -42,6 +44,7 @@ const DIFFICULT_MOMENTS = [
   { value: "boundary-safety", label: "Boundary or safety", description: "A routine or safety boundary is being ignored." },
 ];
 const STUDENT_COUNTS = [1, 2, 3] as const;
+const OTHER_PEOPLE = ["Parent or guardian", "Administrator", "Another teacher", "Paraprofessional or aide"];
 
 interface PendingFile {
   file: File;
@@ -58,10 +61,14 @@ function DesignStart() {
   const finalize = useServerFn(finalizeDocument);
 
   const [focus, setFocus] = useState("");
-  const [practitioner, setPractitioner] = useState(ROLES[0]);
-  const [setting, setSetting] = useState(SETTINGS[0]);
+  const [customFocus, setCustomFocus] = useState("");
+  const [practitioner, setPractitioner] = useState(ROLES[0] ?? "");
+  const [setting, setSetting] = useState(SETTINGS[0] ?? "");
   const [studentCount, setStudentCount] = useState<number>(2);
   const [difficultMoment, setDifficultMoment] = useState("");
+  const [customMoment, setCustomMoment] = useState("");
+  const [others, setOthers] = useState<string[]>([]);
+  const [customOther, setCustomOther] = useState("");
   const [specifics, setSpecifics] = useState("");
   const [files, setFiles] = useState<PendingFile[]>([]);
   const [dragging, setDragging] = useState(false);
@@ -80,8 +87,16 @@ function DesignStart() {
     setSetting(settingPick);
     setDifficultMoment(moment.value);
     setStudentCount(STUDENT_COUNTS[Math.floor(Math.random() * STUDENT_COUNTS.length)] ?? 2);
+    setCustomFocus("");
+    setCustomMoment("");
+    setOthers([]);
+    setCustomOther("");
     setSpecifics("");
     setError(null);
+  };
+
+  const toggleOther = (value: string) => {
+    setOthers((current) => (current.includes(value) ? current.filter((item) => item !== value) : [...current, value]));
   };
 
   const addFiles = (list: FileList | null) => {
@@ -91,7 +106,12 @@ function DesignStart() {
 
   const build = async () => {
     const selectedFocus = PRACTICE_FOCUSES.find((item) => item.value === focus);
-    if (!selectedFocus || !difficultMoment) {
+    const purpose = focus === CUSTOM ? customFocus.trim() : selectedFocus?.purpose;
+    const momentLabel = difficultMoment === CUSTOM
+      ? customMoment.trim()
+      : DIFFICULT_MOMENTS.find((item) => item.value === difficultMoment)?.label;
+    const selectedOthers = [...others, ...(customOther.trim() ? [customOther.trim()] : [])];
+    if (!purpose || !momentLabel) {
       setError("Choose a practice focus and a difficult moment before building a scenario.");
       return;
     }
@@ -100,17 +120,18 @@ function DesignStart() {
     try {
       const { id } = await create({
         data: {
-          purpose: selectedFocus.purpose,
+          purpose,
           practicingRole: practitioner || ROLES[0] || "Preservice teacher",
           setting: setting || SETTINGS[0] || "Classroom",
           specifics: [
-            `Practice focus: ${selectedFocus.label}.`,
-            `Difficult moment: ${DIFFICULT_MOMENTS.find((item) => item.value === difficultMoment)?.label ?? difficultMoment}.`,
+            `Practice focus: ${focus === CUSTOM ? purpose : selectedFocus?.label ?? purpose}.`,
+            `Difficult moment: ${momentLabel}.`,
             `Simulate exactly ${studentCount} student${studentCount === 1 ? "" : "s"}.`,
+            selectedOthers.length ? `Others in the situation: ${selectedOthers.join(", ")}.` : "",
             specifics.trim(),
           ].filter(Boolean).join(" "),
           studentCount,
-          difficultMoment,
+          difficultMoment: difficultMoment === CUSTOM ? momentLabel : difficultMoment,
         },
       });
 
@@ -162,7 +183,9 @@ function DesignStart() {
               {PRACTICE_FOCUSES.map((item) => (
                 <ChoiceCard key={item.value} selected={focus === item.value} onClick={() => setFocus(item.value)} title={item.label} description={item.purpose} />
               ))}
+              <ChoiceCard selected={focus === CUSTOM} onClick={() => setFocus(CUSTOM)} title="Add your own focus" description="Describe the teaching practice in your own words." />
             </div>
+            {focus === CUSTOM && <div className="mt-4"><label className="text-sm text-foreground" htmlFor="custom-focus">Your practice focus</label><input id="custom-focus" value={customFocus} onChange={(event) => setCustomFocus(event.target.value)} className={`${input} mt-2`} placeholder="For example: Help a student rejoin the group after a mistake." /></div>}
           </Section>
 
           <Section title="2. Choose the difficult moment">
@@ -170,13 +193,15 @@ function DesignStart() {
               {DIFFICULT_MOMENTS.map((item) => (
                 <ChoiceCard key={item.value} selected={difficultMoment === item.value} onClick={() => setDifficultMoment(item.value)} title={item.label} description={item.description} />
               ))}
+              <ChoiceCard selected={difficultMoment === CUSTOM} onClick={() => setDifficultMoment(CUSTOM)} title="Add your own moment" description="Describe the moment you want to step into." />
             </div>
+            {difficultMoment === CUSTOM && <div className="mt-4"><label className="text-sm text-foreground" htmlFor="custom-moment">Your difficult moment</label><input id="custom-moment" value={customMoment} onChange={(event) => setCustomMoment(event.target.value)} className={`${input} mt-2`} placeholder="For example: A student refuses to join a partner activity." /></div>}
           </Section>
 
           <Section title="3. Set the room">
             <div className="grid gap-5 sm:grid-cols-2">
-              <SelectField id="practitioner" label="Who is practicing?" value={practitioner || ""} onChange={setPractitioner} options={ROLES} />
-              <SelectField id="setting" label="Setting" value={setting || ""} onChange={setSetting} options={SETTINGS} />
+              <ComboField id="practitioner" label="Who is practicing?" value={practitioner} onChange={setPractitioner} options={ROLES} />
+              <ComboField id="setting" label="Setting" value={setting} onChange={setSetting} options={SETTINGS} />
             </div>
             <div className="mt-5">
               <label className="text-sm text-foreground" htmlFor="student-count">Students in the situation</label>
@@ -188,6 +213,14 @@ function DesignStart() {
                 ))}
               </div>
               <p className="mt-2 text-xs text-muted-foreground">Choose one to three students for this first rehearsal configuration.</p>
+            </div>
+            <div className="mt-5">
+              <p className="text-sm text-foreground">Others in the situation <span className="text-muted-foreground">(optional)</span></p>
+              <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Others in the situation">
+                {OTHER_PEOPLE.map((person) => <button key={person} type="button" aria-pressed={others.includes(person)} onClick={() => toggleOther(person)} className={`${others.includes(person) ? "border-primary bg-accent text-primary" : "border-input bg-background text-foreground hover:bg-muted"} rounded-full border px-3 py-2 text-xs`}>{person}</button>)}
+                <button type="button" aria-pressed={Boolean(customOther)} onClick={() => setCustomOther(customOther ? "" : " ")} className={`${customOther ? "border-primary bg-accent text-primary" : "border-input bg-background text-foreground hover:bg-muted"} rounded-full border px-3 py-2 text-xs`}>Add your own</button>
+              </div>
+              {customOther !== "" && <input aria-label="Your other participant" value={customOther.trim()} onChange={(event) => setCustomOther(event.target.value)} className={`${input} mt-3`} placeholder="For example: School counselor" />}
             </div>
             <label className="mt-5 block text-sm text-foreground" htmlFor="specifics">Anything else to include? <span className="text-muted-foreground">(optional)</span></label>
             <textarea id="specifics" value={specifics} onChange={(event) => setSpecifics(event.target.value)} rows={2} className={`${input} mt-2`} placeholder="For example: the rest of the group is watching." />
@@ -218,4 +251,15 @@ function ChoiceCard({ selected, onClick, title, description }: { selected: boole
 
 function SelectField({ id, label, value, onChange, options }: { id: string; label: string; value: string; onChange: (value: string) => void; options: string[] }) {
   return <div><label className="text-sm text-foreground" htmlFor={id}>{label}</label><select id={id} value={value} onChange={(event) => onChange(event.target.value)} className={`${input} mt-2`} >{options.map((option) => <option key={option} value={option}>{option}</option>)}</select></div>;
+}
+
+function ComboField({ id, label, value, onChange, options }: { id: string; label: string; value: string; onChange: (value: string) => void; options: string[] }) {
+  const listId = `${id}-options`;
+  return (
+    <div>
+      <label className="text-sm text-foreground" htmlFor={id}>{label}</label>
+      <input id={id} list={listId} value={value} onChange={(event) => onChange(event.target.value)} className={`${input} mt-2`} />
+      <datalist id={listId}>{options.map((option) => <option key={option} value={option} />)}</datalist>
+    </div>
+  );
 }
