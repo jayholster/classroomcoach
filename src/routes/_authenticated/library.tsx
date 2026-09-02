@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell, Chip, btn, btnPrimary, input } from "@/components/AppShell";
 import { deleteScenario, listScenarios } from "@/lib/api/scenarios.functions";
-import { createAssignment, createGroup, listAssignments, listGroups, type AssignmentRow, type GroupRow } from "@/lib/api/assignments.functions";
+import { createAssignment, createGroup, listAssignments, listGroups } from "@/lib/api/assignments.functions";
 
 export const Route = createFileRoute("/_authenticated/library")({
   head: () => ({
