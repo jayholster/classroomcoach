@@ -37,7 +37,7 @@ export const listScenarios = createServerFn({ method: "GET" })
     const scenarios = (data ?? []) as unknown as ScenarioRow[];
     const { data: versions } = await context.supabase
       .from("scenario_versions")
-      .select("scenario_id, version_label, created_at")
+      .select("id, scenario_id, version_label, created_at")
       .order("created_at", { ascending: false });
     const byScenario = new Map<string, { count: number; latest: string; latestId: string }>();
     for (const v of (versions ?? []) as unknown as { scenario_id: string; version_label: string; id: string }[]) {
