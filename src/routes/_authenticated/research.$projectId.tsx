@@ -34,7 +34,7 @@ type Tab = "overview" | "sessions" | "dataset" | "assurance";
 
 function ProjectWorkspace() {
   const { projectId } = Route.useParams();
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTab] = useState<Tab>("dataset");
 
   const overviewFn = useServerFn(getProjectOverview);
   const overview = useQuery({
