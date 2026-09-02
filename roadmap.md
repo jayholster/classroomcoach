@@ -16,3 +16,6 @@
 - [x] Simplify Dataset Builder with numbered steps, field presets, collapsible families, and export guards
 - [x] Format Event Explorer with observed/model-generated bands, raw record disclosure, and optional notes
 - [x] Verify review and research routes in the live preview and resolve any runtime errors
+- [x] Clarify Library with status filters, search, stronger primary actions, and readable empty states
+- [x] Clarify Rehearse with resumable sessions, search, clearer setup, and a focused response composer
+- [x] Verify Library and Rehearse updates in the live preview

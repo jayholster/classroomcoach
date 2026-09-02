@@ -107,16 +107,21 @@ function RehearsePage() {
     navigate({ to: "/review/$sessionId", params: { sessionId: id } });
   };
 
+  const turnCount = data.events.filter((e: SessionEvent) => Boolean(e.user_action)).length;
+
   return (
     <AppShell>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
         <div>
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h1 className="text-xl font-semibold tracking-tight text-primary">
-                {data.spec.setting.label || data.session.scenario_title} — Rehearsal
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Rehearsal in progress</p>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight text-primary">
+                {data.spec.setting.label || data.session.scenario_title}
               </h1>
-              <p className="text-sm text-muted-foreground">{data.spec.practicing_role}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                You are the {data.spec.practicing_role} · {turnCount} {turnCount === 1 ? "turn" : "turns"} so far
+              </p>
             </div>
             <div className="flex gap-2">
               <Chip>{data.versionLabel}</Chip>
@@ -130,8 +135,16 @@ function RehearsePage() {
             aria-live="polite"
             aria-label="Rehearsal transcript"
           >
-            {data.events.map((e: SessionEvent) => (
+            {data.events.length === 0 && (
+              <div className="p-6 text-sm text-muted-foreground">
+                The room is waiting. Type what you would actually say or do to open the moment.
+              </div>
+            )}
+            {data.events.map((e: SessionEvent, index: number) => (
               <div key={e.id} className="p-5 sm:p-6">
+                <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  Turn {index + 1}
+                </p>
                 {e.user_action && (
                   <Message from="user" className="max-w-[92%] gap-1">
                     <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Your move</p>
@@ -192,53 +205,81 @@ function RehearsePage() {
           )}
 
           {!ended && (
-            <div className="mt-5">
+            <div className="sticky bottom-0 mt-5 border-t border-border bg-background pt-4">
+              <label htmlFor="rehearsal-response" className="text-sm font-medium text-foreground">
+                Your response
+              </label>
               <textarea
-                className={`${input} text-base`}
+                id="rehearsal-response"
+                className={`${input} mt-2 text-base`}
                 rows={4}
                 value={text}
                 placeholder="Type what you would say or do…"
                 onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                    e.preventDefault();
+                    void respond();
+                  }
+                }}
               />
-              <div className="mt-3 flex flex-wrap gap-3">
-                <button className={btnPrimary} onClick={() => void respond()} disabled={busy}>
-                  {busy ? "The room responds…" : "RESPOND"}
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button className={btnPrimary} onClick={() => void respond()} disabled={busy || !text.trim()}>
+                  {busy ? "The room responds…" : "Respond"}
                 </button>
                 <button className={btn} onClick={() => void end()} disabled={busy}>
-                  END REHEARSAL
+                  End rehearsal
                 </button>
+                <span className="text-xs text-muted-foreground">Ctrl/⌘ + Enter to send</span>
               </div>
+              <p className="mt-2 pb-4 text-xs text-muted-foreground">
+                Ending the rehearsal closes it for good and takes you to the after-action review.
+              </p>
             </div>
           )}
 
           {ended && (
-            <button
-              className={`${btnPrimary} mt-5`}
-              onClick={() => navigate({ to: "/review/$sessionId", params: { sessionId: id } })}
-            >
-              GO TO AFTER-ACTION REVIEW
-            </button>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <button
+                className={btnPrimary}
+                onClick={() => navigate({ to: "/review/$sessionId", params: { sessionId: id } })}
+              >
+                Go to after-action review
+              </button>
+              <button className={btn} onClick={() => navigate({ to: "/rehearse" })}>
+                Back to rehearsals
+              </button>
+            </div>
           )}
         </div>
 
-        <aside className="space-y-4">
+        <aside className="space-y-3">
           <button className={`${btn} w-full`} onClick={() => setShowState(true)}>
-            Current simulation state
+            View simulation state
           </button>
-          <p className="text-xs text-muted-foreground">
-            Instructor-only view. The practicing user sees only what the situation makes available.
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Instructor-only view of what the situation is tracking. The practicing user sees only what the moment makes
+            available.
           </p>
-          <p className="text-xs text-muted-foreground">
-            {data.foundationVersion}
-            {data.events
-              .slice()
-              .reverse()
-              .find((e) => e.model_identifier)?.model_identifier
-              ? ` · ${data.events.slice().reverse().find((e) => e.model_identifier)?.model_identifier}`
-              : ""}
+          <div className="panel p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Provenance</p>
+            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+              {data.foundationVersion}
+              {data.events
+                .slice()
+                .reverse()
+                .find((e) => e.model_identifier)?.model_identifier
+                ? ` · ${data.events.slice().reverse().find((e) => e.model_identifier)?.model_identifier}`
+                : ""}
+            </p>
+          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Something feel off? Use <span className="text-foreground">Flag</span> on any response — the rehearsal keeps
+            going.
           </p>
         </aside>
       </div>
+
 
       {showState && (
         <Drawer title="Current simulation state" onClose={() => setShowState(false)}>
