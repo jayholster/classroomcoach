@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DesignIndexRouteImport } from './routes/design.index'
 import { Route as DesignIdRouteImport } from './routes/design.$id'
 import { Route as RehearseIndexRouteImport } from './routes/rehearse.index'
+import { Route as RehearseIdRouteImport } from './routes/rehearse.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,16 +35,23 @@ const RehearseIndexRoute = RehearseIndexRouteImport.update({
   path: '/rehearse/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RehearseIdRoute = RehearseIdRouteImport.update({
+  id: '/rehearse/$id',
+  path: '/rehearse/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/design/$id': typeof DesignIdRoute
+  '/rehearse/$id': typeof RehearseIdRoute
   '/design/': typeof DesignIndexRoute
   '/rehearse/': typeof RehearseIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/design/$id': typeof DesignIdRoute
+  '/rehearse/$id': typeof RehearseIdRoute
   '/design': typeof DesignIndexRoute
   '/rehearse': typeof RehearseIndexRoute
 }
@@ -51,20 +59,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/design/$id': typeof DesignIdRoute
+  '/rehearse/$id': typeof RehearseIdRoute
   '/design/': typeof DesignIndexRoute
   '/rehearse/': typeof RehearseIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/design/$id' | '/design/' | '/rehearse/'
+  fullPaths: '/' | '/design/$id' | '/rehearse/$id' | '/design/' | '/rehearse/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/design/$id' | '/design' | '/rehearse'
-  id: '__root__' | '/' | '/design/$id' | '/design/' | '/rehearse/'
+  to: '/' | '/design/$id' | '/rehearse/$id' | '/design' | '/rehearse'
+  id:
+    | '__root__'
+    | '/'
+    | '/design/$id'
+    | '/rehearse/$id'
+    | '/design/'
+    | '/rehearse/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignIdRoute: typeof DesignIdRoute
+  RehearseIdRoute: typeof RehearseIdRoute
   DesignIndexRoute: typeof DesignIndexRoute
   RehearseIndexRoute: typeof RehearseIndexRoute
 }
@@ -99,12 +115,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RehearseIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rehearse/$id': {
+      id: '/rehearse/$id'
+      path: '/rehearse/$id'
+      fullPath: '/rehearse/$id'
+      preLoaderRoute: typeof RehearseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignIdRoute: DesignIdRoute,
+  RehearseIdRoute: RehearseIdRoute,
   DesignIndexRoute: DesignIndexRoute,
   RehearseIndexRoute: RehearseIndexRoute,
 }
