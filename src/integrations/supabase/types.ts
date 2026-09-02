@@ -1721,7 +1721,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_access_version: { Args: { _version: string }; Returns: boolean }
       commit_simulation_turn: {
         Args: {
           _app_release?: string
@@ -1768,31 +1767,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_group_member: { Args: { _group: string }; Returns: boolean }
-      is_org_admin: { Args: { _org: string }; Returns: boolean }
-      is_org_member: { Args: { _org: string }; Returns: boolean }
-      is_research_member: { Args: { _project: string }; Returns: boolean }
-      org_role: {
-        Args: { _org: string }
-        Returns: Database["public"]["Enums"]["app_role"]
-      }
-      research_can_read_org: { Args: { _org: string }; Returns: boolean }
-      research_can_read_scenario: {
-        Args: { _scenario: string }
-        Returns: boolean
-      }
-      research_can_read_session: {
-        Args: { _session: string }
-        Returns: boolean
-      }
-      research_project_org: { Args: { _project: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "educator" | "learner"
