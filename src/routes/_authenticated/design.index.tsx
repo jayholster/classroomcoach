@@ -106,7 +106,12 @@ function DesignStart() {
 
   const build = async () => {
     const selectedFocus = PRACTICE_FOCUSES.find((item) => item.value === focus);
-    if (!selectedFocus || !difficultMoment) {
+    const purpose = focus === CUSTOM ? customFocus.trim() : selectedFocus?.purpose;
+    const momentLabel = difficultMoment === CUSTOM
+      ? customMoment.trim()
+      : DIFFICULT_MOMENTS.find((item) => item.value === difficultMoment)?.label;
+    const selectedOthers = [...others, ...(customOther.trim() ? [customOther.trim()] : [])];
+    if (!purpose || !momentLabel) {
       setError("Choose a practice focus and a difficult moment before building a scenario.");
       return;
     }
