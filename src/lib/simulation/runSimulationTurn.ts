@@ -15,7 +15,7 @@ export interface TurnResult {
 
 /** Returns true only if a model integration has been configured for this build. */
 export function isAiModeAvailable(): boolean {
-  return Boolean((import.meta as { env?: Record<string, string> }).env?.VITE_SIMULATION_MODEL);
+  return Boolean((import.meta as { env?: Record<string, string> }).env?.["VITE_SIMULATION_MODEL"]);
 }
 
 type Approach = "supportive" | "controlling" | "redirecting";
