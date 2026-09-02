@@ -35,6 +35,7 @@ function ResearchHome() {
   const meQuery = useQuery({ queryKey: ["me"], queryFn: () => me(), staleTime: 300_000 });
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -112,54 +113,65 @@ function ResearchHome() {
 
         {meQuery.data?.isOrgAdmin && (
           <Section
-            title="New dataset workspace"
-            description="Administrators can open a workspace over their own organization's rehearsals. Exported data stays pseudonymous."
+            title="Create a workspace"
+            description="Optional — open a named workspace when you are ready to define a dataset."
+            actions={
+              <button className={btn} type="button" aria-expanded={showCreate} onClick={() => setShowCreate((value) => !value)}>
+                {showCreate ? "Cancel" : "New workspace"}
+              </button>
+            }
           >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="text-sm text-foreground" htmlFor="workspace-name">
-                  Workspace name
-                </label>
-                <input
-                  id="workspace-name"
-                  className={`${input} mt-2`}
-                  value={name}
-                  placeholder="Responding to conflict — Spring cohort"
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-sm text-foreground" htmlFor="workspace-description">
-                  What is being examined? <span className="text-muted-foreground">(optional)</span>
-                </label>
-                <input
-                  id="workspace-description"
-                  className={`${input} mt-2`}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-            </div>
-            {error && (
-              <p role="alert" className="mt-3 text-sm text-destructive">
-                {error}
+            {!showCreate ? (
+              <p className="text-sm text-muted-foreground">
+                You can use an existing workspace above, or create one when you need a new set of filters and fields.
               </p>
+            ) : (
+              <div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="text-sm text-foreground" htmlFor="workspace-name">
+                      Workspace name
+                    </label>
+                    <input
+                      id="workspace-name"
+                      className={`${input} mt-2`}
+                      value={name}
+                      placeholder="Responding to conflict — Spring cohort"
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-foreground" htmlFor="workspace-description">
+                      What is being examined? <span className="text-muted-foreground">(optional)</span>
+                    </label>
+                    <input
+                      id="workspace-description"
+                      className={`${input} mt-2`}
+                      value={description}
+                      placeholder="A short note for other researchers"
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                  </div>
+                </div>
+                {error && (
+                  <p role="alert" className="mt-3 text-sm text-destructive">
+                    {error}
+                  </p>
+                )}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button className={btnPrimary} disabled={busy || !name.trim()} onClick={() => void create()}>
+                    {busy ? "Opening workspace…" : "Open workspace"}
+                  </button>
+                  <button
+                    className={btn}
+                    disabled={busy}
+                    onClick={() => void create(`All rehearsals — ${new Date().toLocaleDateString()}`)}
+                  >
+                    Use all rehearsals
+                  </button>
+                </div>
+              </div>
             )}
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button className={btnPrimary} disabled={busy || !name.trim()} onClick={() => void create()}>
-                {busy ? "Opening workspace…" : "OPEN DATASET WORKSPACE"}
-              </button>
-              <button
-                className={btn}
-                disabled={busy}
-                onClick={() => void create(`All rehearsals — ${new Date().toLocaleDateString()}`)}
-              >
-                Quick workspace over all rehearsals
-              </button>
-              <button className={btn} onClick={() => void query.refetch()} disabled={busy}>
-                Refresh
-              </button>
-            </div>
           </Section>
         )}
       </div>

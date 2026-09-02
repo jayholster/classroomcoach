@@ -11,7 +11,7 @@ import {
   listResearchSessions,
   previewDataset,
 } from "@/lib/api/research.functions";
-import { EMPTY_DEFINITION, FAMILY_LABELS, type DatasetDefinition, type FieldFamily } from "@/lib/research/fields";
+import { DEFAULT_FIELDS, EMPTY_DEFINITION, FAMILY_LABELS, type DatasetDefinition, type FieldFamily } from "@/lib/research/fields";
 
 export const Route = createFileRoute("/_authenticated/research/$projectId")({
   head: () => ({
@@ -76,6 +76,7 @@ function ProjectWorkspace() {
         ).map(([key, label]) => (
           <button
             key={key}
+            type="button"
             onClick={() => setTab(key)}
             aria-current={tab === key ? "page" : undefined}
             className={`-mb-px border-b-2 pb-3 text-sm ${
@@ -251,6 +252,7 @@ function DatasetBuilder({ projectId }: { projectId: string }) {
   const [definition, setDefinition] = useState<DatasetDefinition>(EMPTY_DEFINITION);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [openFamilies, setOpenFamilies] = useState<Record<string, boolean>>({ session: true });
 
   const previewFn = useServerFn(previewDataset);
   const exportFn = useServerFn(exportDataset);
@@ -269,6 +271,16 @@ function DatasetBuilder({ projectId }: { projectId: string }) {
     }
     return Array.from(map.entries());
   }, [preview.data?.available]);
+  const selectedCount = definition.fields.length;
+  const availableKeys = (preview.data?.available ?? []).map((field) => field.key);
+  const filterCount = Object.values(definition.filters).filter(Boolean).length;
+
+  const setPreset = (preset: "minimal" | "full") => {
+    setDefinition((current) => ({
+      ...current,
+      fields: preset === "minimal" ? DEFAULT_FIELDS : availableKeys,
+    }));
+  };
 
   const toggleField = (key: string) =>
     setDefinition((d) => ({
@@ -324,34 +336,52 @@ function DatasetBuilder({ projectId }: { projectId: string }) {
   return (
     <>
       <Section
-        title="Fields"
-        description="Choose what each exported row should contain. Optional families appear only when the study collects them."
+        title="1 · Choose fields"
+        description="Select the information each row should contain. Core fields are available by default; optional research fields appear only when collected."
+        actions={
+          <span className="text-xs text-muted-foreground" aria-live="polite">
+            {selectedCount} selected
+          </span>
+        }
       >
-        <div className="grid gap-6 sm:grid-cols-2">
-          {grouped.map(([family, fields]) => (
-            <fieldset key={family}>
-              <legend className="text-xs font-semibold uppercase tracking-wide text-primary">
-                {FAMILY_LABELS[family]}
-              </legend>
-              <div className="mt-2 space-y-1.5">
-                {fields.map((f) => (
-                  <label key={f.key} className="flex items-start gap-2 text-sm text-foreground">
-                    <input
-                      type="checkbox"
-                      className="mt-0.5 size-4"
-                      checked={definition.fields.includes(f.key)}
-                      onChange={() => toggleField(f.key)}
-                    />
-                    {f.label}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          ))}
+        <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-border pb-4">
+          <span className="mr-1 text-sm text-foreground">Start with:</span>
+          <button className={btn} type="button" onClick={() => setPreset("minimal")}>Core fields</button>
+          <button className={btn} type="button" onClick={() => setPreset("full")} disabled={!availableKeys.length}>All available</button>
+          <button className={btn} type="button" onClick={() => setDefinition((current) => ({ ...current, fields: [] }))}>Clear</button>
+        </div>
+        <div className="space-y-2">
+          {grouped.map(([family, fields]) => {
+            const selectedInFamily = fields.filter((field) => definition.fields.includes(field.key)).length;
+            const isOpen = openFamilies[family] ?? false;
+            return (
+              <fieldset key={family} className="rounded-sm border border-border">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-muted"
+                  aria-expanded={isOpen}
+                  onClick={() => setOpenFamilies((current) => ({ ...current, [family]: !isOpen }))}
+                >
+                  <span className="text-sm font-medium text-primary">{FAMILY_LABELS[family]}</span>
+                  <span className="text-xs text-muted-foreground">{selectedInFamily}/{fields.length} selected {isOpen ? "· Hide" : "· Show"}</span>
+                </button>
+                {isOpen && (
+                  <div className="grid gap-2 border-t border-border px-4 py-3 sm:grid-cols-2">
+                    {fields.map((f) => (
+                      <label key={f.key} className="flex items-start gap-2 text-sm text-foreground">
+                        <input type="checkbox" className="mt-0.5 size-4" checked={definition.fields.includes(f.key)} onChange={() => toggleField(f.key)} />
+                        {f.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </fieldset>
+            );
+          })}
         </div>
       </Section>
 
-      <Section title="Filters" description="Narrow the rows before previewing or exporting.">
+      <Section title="2 · Narrow the rows" description="Optional — leave filters empty to include every rehearsal inside your authorized scope." actions={<span className="text-xs text-muted-foreground">{filterCount ? `${filterCount} filter${filterCount === 1 ? "" : "s"} active` : "No filters"}</span>}>
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
             <label className="text-sm text-foreground" htmlFor="from">
@@ -407,14 +437,14 @@ function DatasetBuilder({ projectId }: { projectId: string }) {
       </Section>
 
       <Section
-        title="Preview and export"
-        description="The preview shows the first rows. Exports include a data dictionary and are recorded in the audit trail."
+        title="3 · Preview and export"
+        description="The preview shows the first rows. Each export includes a data dictionary and is recorded in the audit trail."
         actions={
-          <div className="flex gap-2">
-            <button className={btn} disabled={busy} onClick={() => void runExport("json")}>
+          <div className="flex flex-wrap gap-2">
+            <button className={btn} disabled={busy || selectedCount === 0} onClick={() => void runExport("json")}>
               Export JSON
             </button>
-            <button className={btnPrimary} disabled={busy} onClick={() => void runExport("csv")}>
+            <button className={btnPrimary} disabled={busy || selectedCount === 0} onClick={() => void runExport("csv")}>
               {busy ? "Exporting…" : "Export CSV"}
             </button>
           </div>
@@ -425,6 +455,7 @@ function DatasetBuilder({ projectId }: { projectId: string }) {
             {message}
           </p>
         )}
+        {selectedCount === 0 && <p className="mb-3 text-sm text-muted-foreground">Choose at least one field to preview or export rows.</p>}
         {preview.isLoading && <p className="text-sm text-muted-foreground">Building preview…</p>}
         {preview.error && (
           <p role="alert" className="text-sm text-destructive">
