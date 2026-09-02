@@ -286,7 +286,11 @@ export const submitRehearsalTurn = createServerFn({ method: "POST" })
     const nextState = applyStateUpdate(state, stateUpdate);
     const expectedSequence = (priorEvents[priorEvents.length - 1]?.sequence ?? 0) + 1;
 
-    const { data: committed, error: commitError } = await context.supabase.rpc("commit_simulation_turn", {
+    // The authenticated client is used for all reads and ownership checks. The
+    // commit function is security-definer and intentionally callable only by
+    // the server-side privileged client, so the browser cannot invoke it.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: committed, error: commitError } = await supabaseAdmin.rpc("commit_simulation_turn", {
       _session_id: data.sessionId,
       _expected_sequence: expectedSequence,
       _user_action: data.action,
