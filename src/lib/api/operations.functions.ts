@@ -131,7 +131,7 @@ export const listAuditEvents = createServerFn({ method: "GET" })
       object_type: string;
       object_id: string | null;
       actor_email: string | null;
-      metadata: Record<string, unknown>;
+      metadata: Record<string, string | number | boolean | null>;
       created_at: string;
     }[];
   });
