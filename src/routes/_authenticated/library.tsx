@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell, Chip, btn, btnPrimary, input } from "@/components/AppShell";
 import { deleteScenario, listScenarios } from "@/lib/api/scenarios.functions";
-import { createAssignment, createGroup, listAssignments, listGroups, type AssignmentRow, type GroupRow } from "@/lib/api/assignments.functions";
+import { createAssignment, createGroup, listAssignments, listGroups } from "@/lib/api/assignments.functions";
 
 export const Route = createFileRoute("/_authenticated/library")({
   head: () => ({
@@ -82,7 +82,7 @@ function LibraryPage() {
         data: {
           scenarioId: assigning.id,
           scenarioVersionId: assigning.latest_version_id,
-          groupId: groupId || undefined,
+          ...(groupId ? { groupId } : {}),
           title: assignmentTitle,
           instructions: assignmentInstructions,
         },
@@ -154,6 +154,26 @@ function LibraryPage() {
           </div>
         ))}
       </div>
+
+      {(assignmentsQuery.data ?? []).length > 0 && (
+        <section className="panel mt-8 p-5">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-primary">Assignments</h2>
+          <ul className="mt-4 divide-y divide-border">
+            {(assignmentsQuery.data ?? []).map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div>
+                  <p className="text-sm text-foreground">{a.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {a.scenario_title ?? "Simulation"} · {a.version_label ?? "version"} ·{" "}
+                    {a.group_name ?? "All eligible learners"}
+                  </p>
+                </div>
+                <Chip tone={a.status === "open" ? "accent" : "default"}>{a.status}</Chip>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {assigning && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/20 p-6" role="dialog" aria-modal="true" aria-labelledby="assign-title">
