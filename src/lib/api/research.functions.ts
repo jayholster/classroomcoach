@@ -145,7 +145,7 @@ export const getResearchSession = createServerFn({ method: "POST" })
       context.supabase
         .from("simulation_events")
         .select(
-          "id, sequence, created_at, user_action, visible_response, prior_state, state_update, resulting_state, status, foundation_version, model_provider, model_identifier, model_config_id, app_release, latency_ms",
+          "id, sequence, kind, created_at, user_action, visible_response, prior_state, state_update, resulting_state, status, foundation_version, model_provider, model_identifier, model_config_id, app_release, latency_ms",
         )
         .eq("session_id", data.sessionId)
         .order("sequence"),

@@ -7,6 +7,7 @@ import {
   TurnOutputSchema,
   applyStateUpdate,
   renderVisibleResponse,
+  validateTurnOutput,
   type ScenarioSpec,
   type ReviewSynthesis,
   type SimState,

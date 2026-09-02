@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-import { ScenarioSpecSchema } from "../spec/schema";
+import { ScenarioSpecSchema, validateScenarioSpec } from "../spec/schema";
 
 /**
  * Calls the configured model to derive a structured scenario specification
