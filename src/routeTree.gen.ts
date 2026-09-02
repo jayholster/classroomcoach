@@ -16,6 +16,7 @@ import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDesignIndexRouteImport } from './routes/_authenticated/design.index'
 import { Route as AuthenticatedDesignIdRouteImport } from './routes/_authenticated/design.$id'
 import { Route as AuthenticatedRehearseIndexRouteImport } from './routes/_authenticated/rehearse.index'
+import { Route as AuthenticatedRehearseIdRouteImport } from './routes/_authenticated/rehearse.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,12 +54,18 @@ const AuthenticatedRehearseIndexRoute =
     path: '/rehearse/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRehearseIdRoute = AuthenticatedRehearseIdRouteImport.update({
+  id: '/rehearse/$id',
+  path: '/rehearse/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof AuthenticatedDesignIdRoute
+  '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
   '/design/': typeof AuthenticatedDesignIndexRoute
   '/rehearse/': typeof AuthenticatedRehearseIndexRoute
 }
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof AuthenticatedDesignIdRoute
+  '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
   '/design': typeof AuthenticatedDesignIndexRoute
   '/rehearse': typeof AuthenticatedRehearseIndexRoute
 }
@@ -77,15 +85,29 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/design/$id': typeof AuthenticatedDesignIdRoute
+  '/_authenticated/rehearse/$id': typeof AuthenticatedRehearseIdRoute
   '/_authenticated/design/': typeof AuthenticatedDesignIndexRoute
   '/_authenticated/rehearse/': typeof AuthenticatedRehearseIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/library' | '/design/$id' | '/design/' | '/rehearse/'
+    | '/'
+    | '/auth'
+    | '/library'
+    | '/design/$id'
+    | '/rehearse/$id'
+    | '/design/'
+    | '/rehearse/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/library' | '/design/$id' | '/design' | '/rehearse'
+  to:
+    | '/'
+    | '/auth'
+    | '/library'
+    | '/design/$id'
+    | '/rehearse/$id'
+    | '/design'
+    | '/rehearse'
   id:
     | '__root__'
     | '/'
@@ -93,6 +115,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/library'
     | '/_authenticated/design/$id'
+    | '/_authenticated/rehearse/$id'
     | '/_authenticated/design/'
     | '/_authenticated/rehearse/'
   fileRoutesById: FileRoutesById
@@ -154,12 +177,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRehearseIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/rehearse/$id': {
+      id: '/_authenticated/rehearse/$id'
+      path: '/rehearse/$id'
+      fullPath: '/rehearse/$id'
+      preLoaderRoute: typeof AuthenticatedRehearseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedDesignIdRoute: typeof AuthenticatedDesignIdRoute
+  AuthenticatedRehearseIdRoute: typeof AuthenticatedRehearseIdRoute
   AuthenticatedDesignIndexRoute: typeof AuthenticatedDesignIndexRoute
   AuthenticatedRehearseIndexRoute: typeof AuthenticatedRehearseIndexRoute
 }
@@ -167,6 +198,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedDesignIdRoute: AuthenticatedDesignIdRoute,
+  AuthenticatedRehearseIdRoute: AuthenticatedRehearseIdRoute,
   AuthenticatedDesignIndexRoute: AuthenticatedDesignIndexRoute,
   AuthenticatedRehearseIndexRoute: AuthenticatedRehearseIndexRoute,
 }

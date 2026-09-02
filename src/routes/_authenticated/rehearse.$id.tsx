@@ -221,7 +221,7 @@ function RehearsePage() {
                 <button
                   className={`${btn} w-full justify-start`}
                   onClick={async () => {
-                    await flag({ data: { eventId: flagFor, sessionId: id, reason: r, note: note || undefined } });
+                    await flag({ data: { eventId: flagFor, sessionId: id, reason: r, ...(note ? { note } : {}) } });
                     setFlagFor(null);
                     setNote("");
                     await sessionQuery.refetch();
