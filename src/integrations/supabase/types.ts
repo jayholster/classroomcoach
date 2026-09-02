@@ -1047,6 +1047,300 @@ export type Database = {
           },
         ]
       }
+      research_annotations: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          event_id: string | null
+          id: string
+          project_id: string
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          project_id: string
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          project_id?: string
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_annotations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "simulation_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_annotations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "research_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_annotations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "rehearsal_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_datasets: {
+        Row: {
+          created_at: string
+          created_by: string
+          definition: Json
+          description: string
+          id: string
+          name: string
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          definition?: Json
+          description?: string
+          id?: string
+          name: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          definition?: Json
+          description?: string
+          id?: string
+          name?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_datasets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "research_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_participants: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          pseudonym: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          pseudonym: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          pseudonym?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_participants_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "research_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_projects: {
+        Row: {
+          collection_settings: Json
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          name: string
+          organization_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          collection_settings?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          name: string
+          organization_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          collection_settings?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_scopes: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          group_id: string | null
+          id: string
+          organization_id: string | null
+          project_id: string
+          scenario_id: string | null
+          scope_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          group_id?: string | null
+          id?: string
+          organization_id?: string | null
+          project_id: string
+          scenario_id?: string | null
+          scope_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          group_id?: string | null
+          id?: string
+          organization_id?: string | null
+          project_id?: string
+          scenario_id?: string | null
+          scope_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_scopes_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "courses_or_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_scopes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_scopes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "research_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_scopes_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_snapshots: {
+        Row: {
+          created_at: string
+          created_by: string
+          dataset_id: string | null
+          definition: Json
+          field_schema: Json
+          id: string
+          name: string
+          payload: Json
+          project_id: string
+          row_count: number
+          version_info: Json
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          dataset_id?: string | null
+          definition?: Json
+          field_schema?: Json
+          id?: string
+          name: string
+          payload?: Json
+          project_id: string
+          row_count?: number
+          version_info?: Json
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          dataset_id?: string | null
+          definition?: Json
+          field_schema?: Json
+          id?: string
+          name?: string
+          payload?: Json
+          project_id?: string
+          row_count?: number
+          version_info?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_snapshots_dataset_id_fkey"
+            columns: ["dataset_id"]
+            isOneToOne: false
+            referencedRelation: "research_datasets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_snapshots_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "research_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scenario_participants: {
         Row: {
           current_concern: string
@@ -1484,10 +1778,21 @@ export type Database = {
       is_group_member: { Args: { _group: string }; Returns: boolean }
       is_org_admin: { Args: { _org: string }; Returns: boolean }
       is_org_member: { Args: { _org: string }; Returns: boolean }
+      is_research_member: { Args: { _project: string }; Returns: boolean }
       org_role: {
         Args: { _org: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      research_can_read_org: { Args: { _org: string }; Returns: boolean }
+      research_can_read_scenario: {
+        Args: { _scenario: string }
+        Returns: boolean
+      }
+      research_can_read_session: {
+        Args: { _session: string }
+        Returns: boolean
+      }
+      research_project_org: { Args: { _project: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "educator" | "learner"
