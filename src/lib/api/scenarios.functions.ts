@@ -137,7 +137,7 @@ export const updateScenarioInputs = createServerFn({ method: "POST" })
     if (data.setting !== undefined) patch["setting_label"] = data.setting;
     if (data.specifics !== undefined) patch["specifics"] = data.specifics;
     if (data.title !== undefined) patch["title"] = data.title;
-    const { error } = await context.supabase.from("scenarios").update(patch).eq("id", data.id);
+    const { error } = await context.supabase.from("scenarios").update(patch as never).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 import { FALLBACK_MODEL_CONFIG, type ModelConfig } from "./modelAdapter.server";
 
-type Client = SupabaseClient<never, never, never>;
+export type Client = SupabaseClient<Database>;
 
 export interface FoundationResource {
   key: string;
