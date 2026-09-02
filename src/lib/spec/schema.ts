@@ -117,7 +117,8 @@ export type ReviewSynthesis = z.infer<typeof ReviewSchema>;
 /** Renders a visible response into the Classroom Coach transcript format. */
 export function renderVisibleResponse(vr: VisibleResponse): string {
   const voices = vr.voices.map((v) => `[${v.name}${v.cue ? `, ${v.cue}` : ""}]: "${v.line}"`).join("\n");
-  const observation = vr.observation ? `\n\n→ ${vr.observation.replace(/^→\s*/, "")}` : "";
+  const cleaned = vr.observation.replace(/^→\s*/, "").replace(/\s*What do you do next\?\s*$/i, "");
+  const observation = cleaned ? `\n\n→ ${cleaned}` : "";
   return `${voices}${observation}\n\nWhat do you do next?`;
 }
 
