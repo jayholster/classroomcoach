@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DesignIndexRouteImport } from './routes/design.index'
+import { Route as DesignIdRouteImport } from './routes/design.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,30 +23,39 @@ const DesignIndexRoute = DesignIndexRouteImport.update({
   path: '/design/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DesignIdRoute = DesignIdRouteImport.update({
+  id: '/design/$id',
+  path: '/design/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/design/$id': typeof DesignIdRoute
   '/design/': typeof DesignIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/design/$id': typeof DesignIdRoute
   '/design': typeof DesignIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/design/$id': typeof DesignIdRoute
   '/design/': typeof DesignIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/design/'
+  fullPaths: '/' | '/design/$id' | '/design/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/design'
-  id: '__root__' | '/' | '/design/'
+  to: '/' | '/design/$id' | '/design'
+  id: '__root__' | '/' | '/design/$id' | '/design/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DesignIdRoute: typeof DesignIdRoute
   DesignIndexRoute: typeof DesignIndexRoute
 }
 
@@ -65,11 +75,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesignIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/design/$id': {
+      id: '/design/$id'
+      path: '/design/$id'
+      fullPath: '/design/$id'
+      preLoaderRoute: typeof DesignIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DesignIdRoute: DesignIdRoute,
   DesignIndexRoute: DesignIndexRoute,
 }
 export const routeTree = rootRouteImport
