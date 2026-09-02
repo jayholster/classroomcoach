@@ -133,6 +133,30 @@ export const TurnOutputSchema = z.object({
 });
 export type TurnOutput = z.infer<typeof TurnOutputSchema>;
 
+/** Applies semantic constraints that JSON shape validation cannot express. */
+export function validateScenarioSpec(spec: ScenarioSpec): ScenarioSpec {
+  const students = spec.participants.filter((participant) => participant.role.toLowerCase().includes("student"));
+  if (students.length !== spec.student_count) {
+    throw new Error(`The scenario must contain exactly ${spec.student_count} student participants.`);
+  }
+  const names = spec.participants.map((participant) => participant.name.trim().toLowerCase());
+  if (new Set(names).size !== names.length) throw new Error("Each published participant must have a unique name.");
+  if (spec.opening_moment.voices.some((voice) => !spec.participants.some((participant) => participant.name === voice.name))) {
+    throw new Error("The opening moment includes a voice outside the published cast.");
+  }
+  return spec;
+}
+
+export function validateTurnOutput(output: TurnOutput, presentParticipants: Set<string>): TurnOutput {
+  if (output.visible_response.voices.length < 1 || output.visible_response.voices.length > 3) {
+    throw new Error("A room response must contain between one and three voices.");
+  }
+  if (output.visible_response.voices.some((voice) => !presentParticipants.has(voice.name))) {
+    throw new Error("A room response included someone who is not present in the current scene.");
+  }
+  return output;
+}
+
 export const ReviewSchema = z.object({
   strengths_observed: z.array(z.string()).default([]),
   growth_opportunities: z.array(z.string()).default([]),

@@ -127,23 +127,30 @@ function EventExplorer() {
         {events.map((event) => {
           const eventFlags = flags.filter((flag) => flag.event_id === event.id);
           const eventAnnotations = annotations.filter((annotation) => annotation.event_id === event.id);
-          return (
-            <article key={event.id} className="border-l-2 border-border pl-5">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-primary">Turn {event.sequence}</span>
-                <Chip>{event.status}</Chip>
-                {eventFlags.length > 0 && <Chip tone="warn">{eventFlags.length} flag{eventFlags.length === 1 ? "" : "s"}</Chip>}
-                <span className="text-xs text-muted-foreground">{new Date(event.created_at).toLocaleString()}</span>
-              </div>
-              <div className="mt-3 space-y-4">
-                <section className="border-l-2 border-primary/30 pl-4">
-                  <h2 className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-primary">Observed · learner action</h2>
-                  <p className="mt-2 whitespace-pre-wrap text-base leading-relaxed text-foreground">{event.user_action || "No action recorded"}</p>
-                </section>
-                <section className="border-l-2 border-ring/40 pl-4">
-                  <h2 className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-primary">Model-generated · room response</h2>
-                  <p className="mt-2 whitespace-pre-line text-sm leading-7 text-foreground">{readableResponse(event.visible_response)}</p>
-                </section>
+           return (
+             <article key={event.id} className="border-l-2 border-border pl-5">
+               <div className="flex flex-wrap items-center gap-2">
+                 <span className="text-xs font-semibold uppercase tracking-wide text-primary">{event.kind === "scene_change" ? "Scene change" : `Turn ${event.sequence}`}</span>
+                 <Chip>{event.status}</Chip>
+                 {eventFlags.length > 0 && <Chip tone="warn">{eventFlags.length} flag{eventFlags.length === 1 ? "" : "s"}</Chip>}
+                 <span className="text-xs text-muted-foreground">{new Date(event.created_at).toLocaleString()}</span>
+               </div>
+               {event.kind === "scene_change" ? (
+                 <div className="mt-3 bg-muted/50 p-4">
+                   <p className="text-sm font-medium text-primary">{(event.resulting_state as { scene?: { label?: string; description?: string } } | null)?.scene?.label}</p>
+                   <p className="mt-1 text-sm text-muted-foreground">{(event.resulting_state as { scene?: { description?: string } } | null)?.scene?.description}</p>
+                   <p className="mt-2 text-xs text-muted-foreground">Present: {((event.resulting_state as { present_participants?: string[] } | null)?.present_participants ?? []).join(", ") || "—"}</p>
+                 </div>
+               ) : (
+               <div className="mt-3 space-y-4">
+                 <section className="border-l-2 border-primary/30 pl-4">
+                   <h2 className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-primary">Observed · learner action</h2>
+                   <p className="mt-2 whitespace-pre-wrap text-base leading-relaxed text-foreground">{event.user_action || "No action recorded"}</p>
+                 </section>
+                 <section className="border-l-2 border-ring/40 pl-4">
+                   <h2 className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-primary">Model-generated · room response</h2>
+                   <p className="mt-2 whitespace-pre-line text-sm leading-7 text-foreground">{readableResponse(event.visible_response)}</p>
+                 </section>
                 <details className="border-t border-border pt-3 text-sm">
                   <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Show state, provenance, and raw record</summary>
                   <div className="mt-4 grid gap-5 lg:grid-cols-3">
@@ -164,8 +171,10 @@ function EventExplorer() {
                       <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap text-xs leading-relaxed text-foreground">{formatJson(event.visible_response)}</pre>
                     </div>
                   </div>
-                </details>
-                {(eventFlags.length > 0 || eventAnnotations.length > 0) && (
+                 </details>
+               </div>
+               )}
+                 {(eventFlags.length > 0 || eventAnnotations.length > 0) && (
                   <section className="border-t border-border pt-3">
                     <h2 className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Annotations and flags</h2>
                     <div className="mt-2 space-y-2">

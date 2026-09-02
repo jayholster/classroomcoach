@@ -278,7 +278,13 @@ export const submitRehearsalTurn = createServerFn({ method: "POST" })
       return { ok: false as const, error: result.error, retryable: result.retryable };
     }
 
-    const output = result.value;
+    const present = new Set(state.present_participants.length ? state.present_participants : spec.participants.map((participant) => participant.name));
+    let output;
+    try {
+      output = validateTurnOutput(result.value, present);
+    } catch (validationError) {
+      return { ok: false as const, error: (validationError as Error).message, retryable: false };
+    }
     const stateUpdate = {
       relationship_changes: output.state_update.relationship_changes ?? [],
       participation_changes: output.state_update.participation_changes ?? [],
