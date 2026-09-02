@@ -181,6 +181,8 @@ async function callChatCompletions(
     text: json.choices?.[0]?.message?.content ?? "",
     inputTokens: json.usage?.prompt_tokens ?? null,
     outputTokens: json.usage?.completion_tokens ?? null,
+    model: config.model,
+    provider: config.provider_type,
   };
 }
 
