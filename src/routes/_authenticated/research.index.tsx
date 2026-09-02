@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell, Chip, Section, btn, btnPrimary, input } from "@/components/AppShell";
-import { AssurancePanel } from "@/components/AssurancePanel";
+
 import { getMe } from "@/lib/api/admin.functions";
 import { createResearchProject, listResearchProjects } from "@/lib/api/research.functions";
 

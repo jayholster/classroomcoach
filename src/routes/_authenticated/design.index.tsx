@@ -30,41 +30,44 @@ export const Route = createFileRoute("/_authenticated/design/")({
 const EXAMPLES = [
   {
     purpose:
-      "Responding to conflict between two students during rehearsal without losing the instructional purpose of the lesson.",
-    practitioner: "Preservice music teacher",
-    setting: "7th-grade band rehearsal",
+      "Responding to conflict between two students without losing the instructional purpose of the lesson.",
+    practitioner: "Preservice teacher",
     specifics: "Two students who are usually close have stopped speaking to each other.",
   },
   {
     purpose: "Redirecting a student who is disengaged without singling them out in front of peers.",
     practitioner: "First-year classroom teacher",
-    setting: "8th-grade science lab",
     specifics: "The student has been withdrawn since a group project reassignment.",
   },
   {
     purpose: "Holding a boundary about materials and safety while keeping the relationship intact.",
     practitioner: "Student teacher",
-    setting: "High school art studio",
     specifics: "A student repeatedly ignores a shared-equipment routine.",
   },
   {
     purpose: "Responding to a student who challenges your decision in front of the whole class.",
     practitioner: "Preservice teacher",
-    setting: "6th-grade general music",
     specifics: "The challenge follows a seating change the class did not expect.",
   },
   {
     purpose: "Checking in with a student whose participation has dropped sharply this month.",
     practitioner: "Early-career teacher",
-    setting: "Middle school chorus",
     specifics: "Other students have started to notice and comment.",
   },
   {
     purpose: "Facilitating a repair conversation after a comment that hurt another student.",
     practitioner: "Preservice teacher",
-    setting: "7th-grade humanities block",
     specifics: "Both students want to move on but have not spoken about it.",
   },
+];
+
+const SETTINGS = [
+  "7th-grade band rehearsal",
+  "8th-grade science lab",
+  "High school art studio",
+  "6th-grade general music",
+  "Middle school chorus",
+  "7th-grade humanities block",
 ];
 
 interface PendingFile {
@@ -93,15 +96,12 @@ function DesignStart() {
 
   const fillExample = () => {
     const pool = EXAMPLES.filter((e) => e.purpose !== purpose);
-    const pick = pool[Math.floor(Math.random() * pool.length)] ?? {
-      purpose: "Practicing a difficult classroom conversation while keeping the learning goal in view.",
-      practitioner: "Preservice teacher",
-      setting: "7th-grade classroom",
-      specifics: "A student needs support, and the rest of the group is watching.",
-    };
+    const pick = pool[Math.floor(Math.random() * pool.length)] ?? EXAMPLES[0];
+    const settingPool = SETTINGS.filter((value) => value !== setting);
+    const nextSetting = settingPool[Math.floor(Math.random() * settingPool.length)] ?? SETTINGS[0];
     setPurpose(pick.purpose);
     setPractitioner(pick.practitioner);
-    setSetting(pick.setting);
+    setSetting(nextSetting);
     setSpecifics(pick.specifics);
     setError(null);
   };
