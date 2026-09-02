@@ -292,90 +292,41 @@ function DesignReview() {
               </Section>
 
               {viewMode === "advanced" && (
-              <Section
-                title="Relationships & tensions"
-                description="Situational only. Adjusting these does not change the person's underlying profile."
-                actions={
-                  <button
-                    className={btn}
-                    onClick={() =>
-                      setSpec({
-                        ...spec,
-                        relationships: [
-                          ...spec.relationships,
-                          { id: uid(), between: ["", ""], nature: "", tension: "", provenance: ["Educator"] },
-                        ],
-                      })
-                    }
-                  >
-                    Add situational relationship
-                  </button>
-                }
-              >
-                <ul className="space-y-3">
-                  {spec.relationships.map((r) => (
-                    <li key={r.id} className="flex flex-wrap items-center gap-2">
-                      <input
-                        className={`${input} w-32!`}
-                        value={r.between[0] ?? ""}
-                        onChange={(e) =>
-                          setSpec({
-                            ...spec,
-                            relationships: spec.relationships.map((x) =>
-                              x.id === r.id ? { ...x, between: [e.target.value, x.between[1] ?? ""] } : x,
-                            ),
-                          })
-                        }
-                      />
-                      <span className="text-muted-foreground">↔</span>
-                      <input
-                        className={`${input} w-32!`}
-                        value={r.between[1] ?? ""}
-                        onChange={(e) =>
-                          setSpec({
-                            ...spec,
-                            relationships: spec.relationships.map((x) =>
-                              x.id === r.id ? { ...x, between: [x.between[0] ?? "", e.target.value] } : x,
-                            ),
-                          })
-                        }
-                      />
-                      <input
-                        className={`${input} w-44!`}
-                        value={r.nature}
-                        onChange={(e) =>
-                          setSpec({
-                            ...spec,
-                            relationships: spec.relationships.map((x) =>
-                              x.id === r.id ? { ...x, nature: e.target.value } : x,
-                            ),
-                          })
-                        }
-                      />
-                      <input
-                        className={`${input} w-44!`}
-                        value={r.tension}
-                        onChange={(e) =>
-                          setSpec({
-                            ...spec,
-                            relationships: spec.relationships.map((x) =>
-                              x.id === r.id ? { ...x, tension: e.target.value } : x,
-                            ),
-                          })
-                        }
-                      />
-                      <button
-                        className="text-xs text-muted-foreground hover:text-destructive"
-                        onClick={() =>
-                          setSpec({ ...spec, relationships: spec.relationships.filter((x) => x.id !== r.id) })
-                        }
-                      >
-                        Remove
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </Section>
+                <Section
+                  title="Relationships & tensions"
+                  description="Situational only. Adjusting these does not change the person's underlying profile."
+                  actions={
+                    <button
+                      className={btn}
+                      onClick={() =>
+                        setSpec({
+                          ...spec,
+                          relationships: [
+                            ...spec.relationships,
+                            { id: uid(), between: ["", ""], nature: "", tension: "", provenance: ["Educator"] },
+                          ],
+                        })
+                      }
+                    >
+                      Add situational relationship
+                    </button>
+                  }
+                >
+                  <ul className="space-y-3">
+                    {spec.relationships.map((r) => (
+                      <li key={r.id} className="flex flex-wrap items-center gap-2">
+                        <input className={`${input} w-32!`} value={r.between[0] ?? ""} onChange={(e) => setSpec({ ...spec, relationships: spec.relationships.map((x) => x.id === r.id ? { ...x, between: [e.target.value, x.between[1] ?? ""] } : x) })} />
+                        <span className="text-muted-foreground">↔</span>
+                        <input className={`${input} w-32!`} value={r.between[1] ?? ""} onChange={(e) => setSpec({ ...spec, relationships: spec.relationships.map((x) => x.id === r.id ? { ...x, between: [x.between[0] ?? "", e.target.value] } : x) })} />
+                        <input className={`${input} w-44!`} value={r.nature} onChange={(e) => setSpec({ ...spec, relationships: spec.relationships.map((x) => x.id === r.id ? { ...x, nature: e.target.value } : x) })} />
+                        <input className={`${input} w-44!`} value={r.tension} onChange={(e) => setSpec({ ...spec, relationships: spec.relationships.map((x) => x.id === r.id ? { ...x, tension: e.target.value } : x) })} />
+                        <button className="text-xs text-muted-foreground hover:text-destructive" onClick={() => setSpec({ ...spec, relationships: spec.relationships.filter((x) => x.id !== r.id) })}>
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </Section>
               )}
 
               {viewMode === "advanced" && (
