@@ -132,7 +132,7 @@ export async function loadGatewayConfig(supabase: Client): Promise<GatewayConfig
   const { data } = await supabase
     .from("model_configurations")
     .select(
-      "id, name, provider_type, model, endpoint, temperature, max_output, timeout_ms, max_retries, max_concurrency, input_cost_per_mtok, output_cost_per_mtok, configuration_version, credentials_reference",
+      "id, name, provider_type, model, turn_model, endpoint, temperature, max_output, timeout_ms, max_retries, max_concurrency, input_cost_per_mtok, output_cost_per_mtok, configuration_version, credentials_reference",
     )
     .eq("active", true)
     .limit(1)

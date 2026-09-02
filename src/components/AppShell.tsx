@@ -47,50 +47,30 @@ export function AppShell({ children }: { children: ReactNode }) {
           information about real students.
         </div>
       )}
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-4 px-6 pt-6 pb-4">
-          <div>
-            <div className="text-lg font-semibold tracking-tight text-primary">CLASSROOM COACH</div>
-            <div className="text-sm text-muted-foreground">Configurable professional rehearsal</div>
-          </div>
-          <div className="flex items-center gap-3">
-            {user ? (
-              <>
-                <span className="text-xs text-muted-foreground">{user.email}</span>
-                <button
-                  onClick={() => void signOut()}
-                  className="rounded-sm border border-input px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted"
-                >
-                  Sign out
-                </button>
-              </>
-            ) : (
-              <Link to="/auth" className="rounded-sm border border-input px-2 py-1.5 text-sm">
-                Sign in
-              </Link>
-            )}
-          </div>
-        </div>
-        <nav aria-label="Primary" className="mx-auto flex max-w-6xl gap-6 px-6">
-          {visibleNav.map((n) => {
-            const active = pathname.startsWith(n.to);
-            return (
-              <Link
-                key={n.to}
-                to={n.to}
-                aria-current={active ? "page" : undefined}
-                className={`-mb-px border-b-2 pb-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-                  active
-                    ? "border-primary font-medium text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {n.label}
-              </Link>
-            );
-          })}
-        </nav>
-      </header>
+       <header className="border-b border-border bg-card shadow-sm">
+         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
+           <Link to="/library" className="group" aria-label="Classroom Coach home">
+             <div className="font-[family-name:var(--font-display)] text-base font-semibold tracking-[0.08em] text-primary">CLASSROOM COACH</div>
+             <div className="mt-0.5 text-xs text-muted-foreground">Professional rehearsal for educators</div>
+           </Link>
+           <div className="flex items-center gap-3">
+             {user ? (
+               <>
+                 <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
+                 <button onClick={() => void signOut()} className="rounded-sm border border-input px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Sign out</button>
+               </>
+             ) : (
+               <Link to="/auth" className="rounded-sm border border-input px-3 py-2 text-sm transition-colors hover:bg-muted">Sign in</Link>
+             )}
+           </div>
+         </div>
+         <nav aria-label="Primary" className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-6">
+           {visibleNav.map((n) => {
+             const active = pathname.startsWith(n.to);
+             return <Link key={n.to} to={n.to} aria-current={active ? "page" : undefined} className={`-mb-px whitespace-nowrap border-b-2 px-3 pb-3 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${active ? "border-primary font-semibold text-primary" : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"}`}>{n.label}</Link>;
+           })}
+         </nav>
+       </header>
       <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-6 py-10">
         {children}
       </main>

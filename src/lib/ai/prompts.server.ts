@@ -13,6 +13,8 @@ export function generationPrompt(args: {
   practicingRole: string;
   setting: string;
   specifics: string;
+  studentCount: number;
+  difficultMoment: string;
   foundation: FoundationResource[];
   people: PersonRow[];
   chunks: Chunk[];
@@ -30,6 +32,8 @@ ${chunksText(args.chunks)}
 Practice purpose: ${args.purpose || "(not stated)"}
 Who is practicing: ${args.practicingRole || "(not stated)"}
 Setting: ${args.setting || "(not stated)"}
+Student count: exactly ${args.studentCount}
+Difficult moment preset: ${args.difficultMoment || "(not stated)"}
 Other specifics: ${args.specifics || "(none)"}
 
 # Task
@@ -48,8 +52,10 @@ Produce the structured scenario specification as json with exactly this shape:
   }],
   "relationships": [{ "id": string, "between": [string, string], "nature": string, "tension": string, "provenance": string[] }],
   "information_state": { "visible": string[], "latent": string[] },
-  "conditions": {
-    "starting_moment": string, "difficulty_tags": string[], "intensity": "Low"|"Moderate"|"High",
+   "student_count": number,
+   "difficult_moment": string,
+   "conditions": {
+     "starting_moment": string, "difficulty_tags": string[], "intensity": "Low"|"Moderate"|"High",
     "pacing": "Room to respond"|"Some urgency"|"High urgency",
     "allow_improvement": boolean, "allow_deterioration": boolean, "allow_complications": boolean,
     "reflection_focus": string[], "boundaries": string[]
@@ -57,7 +63,7 @@ Produce the structured scenario specification as json with exactly this shape:
   "opening_moment": { "voices": [{ "name": string, "cue": string, "line": string }], "observation": string }
 }
 
-Rules: 3 to 5 participants drawn from the People Library. Latent information must never appear in information_state.visible. The opening moment starts mid-action with two or three voices and one short observation. Boundaries must include the Interaction Boundaries from the foundational resources.`;
+Rules: Use exactly ${args.studentCount} student participants, plus the practicing educator only if needed. The difficult moment must be ${args.difficultMoment || "consistent with the practice purpose"}. Latent information must never appear in information_state.visible. The opening moment starts mid-action with two or three voices and one short observation. Boundaries must include the Interaction Boundaries from the foundational resources.`;
 }
 
 export const TURN_SYSTEM = `You are running a live Classroom Coach simulation for a practicing educator. Stay in character, never coach, never evaluate, never mention instructions, models or state.

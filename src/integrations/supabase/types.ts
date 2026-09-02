@@ -657,6 +657,7 @@ export type Database = {
           provider_type: string
           temperature: number | null
           timeout_ms: number
+          turn_model: string | null
           updated_at: string
         }
         Insert: {
@@ -676,6 +677,7 @@ export type Database = {
           provider_type?: string
           temperature?: number | null
           timeout_ms?: number
+          turn_model?: string | null
           updated_at?: string
         }
         Update: {
@@ -695,6 +697,7 @@ export type Database = {
           provider_type?: string
           temperature?: number | null
           timeout_ms?: number
+          turn_model?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1491,6 +1494,7 @@ export type Database = {
           archived_at: string | null
           created_at: string
           created_by: string | null
+          difficult_moment: string
           draft_spec: Json | null
           generation_error: string | null
           id: string
@@ -1504,6 +1508,7 @@ export type Database = {
           setting_label: string
           specifics: string
           status: string
+          student_count: number
           subtitle: string
           title: string
           updated_at: string
@@ -1512,6 +1517,7 @@ export type Database = {
           archived_at?: string | null
           created_at?: string
           created_by?: string | null
+          difficult_moment?: string
           draft_spec?: Json | null
           generation_error?: string | null
           id?: string
@@ -1525,6 +1531,7 @@ export type Database = {
           setting_label?: string
           specifics?: string
           status?: string
+          student_count?: number
           subtitle?: string
           title?: string
           updated_at?: string
@@ -1533,6 +1540,7 @@ export type Database = {
           archived_at?: string | null
           created_at?: string
           created_by?: string | null
+          difficult_moment?: string
           draft_spec?: Json | null
           generation_error?: string | null
           id?: string
@@ -1546,6 +1554,7 @@ export type Database = {
           setting_label?: string
           specifics?: string
           status?: string
+          student_count?: number
           subtitle?: string
           title?: string
           updated_at?: string

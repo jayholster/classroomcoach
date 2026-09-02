@@ -11,6 +11,8 @@ export interface ScenarioRow {
   practicing_role: string;
   setting_label: string;
   specifics: string;
+  student_count: number;
+  difficult_moment: string;
   status: string;
   draft_spec: ScenarioSpec | null;
   generation_error: string | null;
@@ -22,7 +24,7 @@ export interface ScenarioRow {
 }
 
 const SCENARIO_COLUMNS =
-  "id, title, subtitle, practice_purpose, practicing_role, setting_label, specifics, status, draft_spec, generation_error, model_identifier, updated_at";
+  "id, title, subtitle, practice_purpose, practicing_role, setting_label, specifics, student_count, difficult_moment, status, draft_spec, generation_error, model_identifier, updated_at";
 
 export const listScenarios = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -55,7 +57,20 @@ export const listScenarios = createServerFn({ method: "GET" })
 
 export const createScenario = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { purpose: string; practicingRole: string; setting: string; specifics: string }) => input)
+  .inputValidator((input: {
+    purpose: string;
+    practicingRole: string;
+    setting: string;
+    specifics: string;
+    studentCount: number;
+    difficultMoment: string;
+  }) => {
+    if (!input.purpose.trim()) throw new Error("Choose a practice focus before building a scenario.");
+    if (!Number.isInteger(input.studentCount) || input.studentCount < 1 || input.studentCount > 3) {
+      throw new Error("A scenario must include between one and three students.");
+    }
+    return input;
+  })
   .handler(async ({ data, context }) => {
     const { resolveCaller, requireAuthoring } = await import("../server/orgContext.server");
     const { writeAudit } = await import("../server/audit.server");
@@ -73,6 +88,8 @@ export const createScenario = createServerFn({ method: "POST" })
         practicing_role: data.practicingRole,
         setting_label: data.setting,
         specifics: data.specifics,
+        student_count: data.studentCount,
+        difficult_moment: data.difficultMoment,
         status: "Draft",
       })
       .select("id")
@@ -176,6 +193,8 @@ export const saveDraftSpec = createServerFn({ method: "POST" })
         subtitle: spec.subtitle,
         setting_label: spec.setting.label,
         practicing_role: spec.practicing_role,
+        student_count: spec.student_count,
+        difficult_moment: spec.difficult_moment,
         status: "Draft",
       })
       .eq("id", data.id);

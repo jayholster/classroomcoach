@@ -13,6 +13,8 @@ export interface ModelUsageResult {
   text: string;
   inputTokens: number | null;
   outputTokens: number | null;
+  model?: string;
+  provider?: string;
 }
 
 export interface ModelConfig {
@@ -133,6 +135,42 @@ async function callLovableResponses(
   return readResponsesStream(res);
 }
 
+async function readChatStream(res: Response, config: ModelConfig): Promise<ModelUsageResult> {
+  const reader = res.body?.getReader();
+  if (!reader) throw new ModelCallError("The AI service returned an empty response.", 502);
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let text = "";
+  let inputTokens: number | null = null;
+  let outputTokens: number | null = null;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data:")) continue;
+      const payload = line.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const evt = JSON.parse(payload) as {
+          choices?: { delta?: { content?: string }; message?: { content?: string } }[];
+          usage?: { prompt_tokens?: number; completion_tokens?: number };
+        };
+        const choice = evt.choices?.[0];
+        if (choice?.delta?.content) text += choice.delta.content;
+        if (!choice?.delta && choice?.message?.content) text += choice.message.content;
+        inputTokens = evt.usage?.prompt_tokens ?? inputTokens;
+        outputTokens = evt.usage?.completion_tokens ?? outputTokens;
+      } catch {
+        /* ignore malformed keep-alive frames */
+      }
+    }
+  }
+  return { text, inputTokens, outputTokens, model: config.model, provider: config.provider_type };
+}
+
 async function callChatCompletions(
   config: ModelConfig,
   system: string,
@@ -153,6 +191,12 @@ async function callChatCompletions(
   if (config.temperature !== null && !config.model.startsWith("openai/gpt-5")) {
     body["temperature"] = config.temperature;
   }
+  // Gemini models support the provider's priority tier, which keeps live
+  // rehearsal turns responsive.
+  if (useGatewayHeader && config.model.startsWith("google/gemini-")) {
+    body["service_tier"] = "priority";
+    body["stream"] = true;
+  }
   const res = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",
     ...(signal ? { signal } : {}),
@@ -166,6 +210,7 @@ async function callChatCompletions(
     const text = await res.text();
     throw new ModelCallError(describeStatus(res.status, text), res.status);
   }
+  if (useGatewayHeader && config.model.startsWith("google/gemini-")) return readChatStream(res, config);
   const json = (await res.json()) as {
     choices?: { message?: { content?: string } }[];
     usage?: { prompt_tokens?: number; completion_tokens?: number };
@@ -174,6 +219,8 @@ async function callChatCompletions(
     text: json.choices?.[0]?.message?.content ?? "",
     inputTokens: json.usage?.prompt_tokens ?? null,
     outputTokens: json.usage?.completion_tokens ?? null,
+    model: config.model,
+    provider: config.provider_type,
   };
 }
 
