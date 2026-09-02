@@ -61,10 +61,13 @@ describe("TurnOutputSchema", () => {
 
   it("accepts a well-formed turn", () => {
     const parsed = TurnOutputSchema.parse({
-      visible_response: { observation: "The room goes quiet.", lines: [{ speaker: "Ben", text: "I was working." }] },
+      visible_response: {
+        observation: "The room goes quiet.",
+        voices: [{ name: "Ben", cue: "quietly", line: "I was working." }],
+      },
       state_update: { relationship_changes: ["Ben is slightly more open"] },
     });
-    expect(parsed.visible_response.lines?.[0]?.speaker).toBe("Ben");
+    expect(parsed.visible_response.voices[0]?.name).toBe("Ben");
   });
 });
 
@@ -72,7 +75,7 @@ describe("renderVisibleResponse", () => {
   it("does not repeat the closing prompt when the model already included it", () => {
     const text = renderVisibleResponse({
       observation: "Ben looks down. What do you do next?",
-      lines: [{ speaker: "Ben", text: "Nothing." }],
+      voices: [{ name: "Ben", cue: "flatly", line: "Nothing." }],
     });
     expect(text.match(/What do you do next\?/g)?.length ?? 0).toBeLessThanOrEqual(1);
   });
