@@ -93,7 +93,12 @@ function DesignStart() {
 
   const fillExample = () => {
     const pool = EXAMPLES.filter((e) => e.purpose !== purpose);
-    const pick = pool[Math.floor(Math.random() * pool.length)] ?? EXAMPLES[0];
+    const pick = pool[Math.floor(Math.random() * pool.length)] ?? {
+      purpose: "Practicing a difficult classroom conversation while keeping the learning goal in view.",
+      practitioner: "Preservice teacher",
+      setting: "7th-grade classroom",
+      specifics: "A student needs support, and the rest of the group is watching.",
+    };
     setPurpose(pick.purpose);
     setPractitioner(pick.practitioner);
     setSetting(pick.setting);
