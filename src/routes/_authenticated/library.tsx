@@ -77,11 +77,7 @@ function LibraryPage() {
               <button className={btn} onClick={() => navigate({ to: "/design/$id", params: { id: sim.id } })}>
                 Open
               </button>
-              <button
-                className={btn}
-                disabled={!sim.version_count}
-                onClick={() => navigate({ to: "/rehearse/$id", params: { id: sim.id } })}
-              >
+              <button className={btn} disabled={!sim.version_count} onClick={() => navigate({ to: "/rehearse" })}>
                 Rehearse
               </button>
               <button
