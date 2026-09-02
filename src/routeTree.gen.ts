@@ -18,8 +18,11 @@ import { Route as AuthenticatedDesignIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedDesignIdRouteImport } from './routes/_authenticated/design.$id'
 import { Route as AuthenticatedRehearseIndexRouteImport } from './routes/_authenticated/rehearse.index'
 import { Route as AuthenticatedRehearseIdRouteImport } from './routes/_authenticated/rehearse.$id'
+import { Route as AuthenticatedResearchIndexRouteImport } from './routes/_authenticated/research.index'
+import { Route as AuthenticatedResearchProjectIdRouteImport } from './routes/_authenticated/research.$projectId'
 import { Route as AuthenticatedReviewIndexRouteImport } from './routes/_authenticated/review.index'
 import { Route as AuthenticatedReviewSessionIdRouteImport } from './routes/_authenticated/review.$sessionId'
+import { Route as AuthenticatedResearchProjectIdSessionSessionIdRouteImport } from './routes/_authenticated/research.$projectId.session.$sessionId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -67,6 +70,18 @@ const AuthenticatedRehearseIdRoute = AuthenticatedRehearseIdRouteImport.update({
   path: '/rehearse/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedResearchIndexRoute =
+  AuthenticatedResearchIndexRouteImport.update({
+    id: '/research/',
+    path: '/research/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedResearchProjectIdRoute =
+  AuthenticatedResearchProjectIdRouteImport.update({
+    id: '/research/$projectId',
+    path: '/research/$projectId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedReviewIndexRoute =
   AuthenticatedReviewIndexRouteImport.update({
     id: '/review/',
@@ -79,6 +94,12 @@ const AuthenticatedReviewSessionIdRoute =
     path: '/review/$sessionId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedResearchProjectIdSessionSessionIdRoute =
+  AuthenticatedResearchProjectIdSessionSessionIdRouteImport.update({
+    id: '/session/$sessionId',
+    path: '/session/$sessionId',
+    getParentRoute: () => AuthenticatedResearchProjectIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -87,10 +108,13 @@ export interface FileRoutesByFullPath {
   '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof AuthenticatedDesignIdRoute
   '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
+  '/research/$projectId': typeof AuthenticatedResearchProjectIdRouteWithChildren
   '/review/$sessionId': typeof AuthenticatedReviewSessionIdRoute
   '/design/': typeof AuthenticatedDesignIndexRoute
   '/rehearse/': typeof AuthenticatedRehearseIndexRoute
+  '/research/': typeof AuthenticatedResearchIndexRoute
   '/review/': typeof AuthenticatedReviewIndexRoute
+  '/research/$projectId/session/$sessionId': typeof AuthenticatedResearchProjectIdSessionSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -99,10 +123,13 @@ export interface FileRoutesByTo {
   '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof AuthenticatedDesignIdRoute
   '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
+  '/research/$projectId': typeof AuthenticatedResearchProjectIdRouteWithChildren
   '/review/$sessionId': typeof AuthenticatedReviewSessionIdRoute
   '/design': typeof AuthenticatedDesignIndexRoute
   '/rehearse': typeof AuthenticatedRehearseIndexRoute
+  '/research': typeof AuthenticatedResearchIndexRoute
   '/review': typeof AuthenticatedReviewIndexRoute
+  '/research/$projectId/session/$sessionId': typeof AuthenticatedResearchProjectIdSessionSessionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,10 +140,13 @@ export interface FileRoutesById {
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/design/$id': typeof AuthenticatedDesignIdRoute
   '/_authenticated/rehearse/$id': typeof AuthenticatedRehearseIdRoute
+  '/_authenticated/research/$projectId': typeof AuthenticatedResearchProjectIdRouteWithChildren
   '/_authenticated/review/$sessionId': typeof AuthenticatedReviewSessionIdRoute
   '/_authenticated/design/': typeof AuthenticatedDesignIndexRoute
   '/_authenticated/rehearse/': typeof AuthenticatedRehearseIndexRoute
+  '/_authenticated/research/': typeof AuthenticatedResearchIndexRoute
   '/_authenticated/review/': typeof AuthenticatedReviewIndexRoute
+  '/_authenticated/research/$projectId/session/$sessionId': typeof AuthenticatedResearchProjectIdSessionSessionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,10 +157,13 @@ export interface FileRouteTypes {
     | '/library'
     | '/design/$id'
     | '/rehearse/$id'
+    | '/research/$projectId'
     | '/review/$sessionId'
     | '/design/'
     | '/rehearse/'
+    | '/research/'
     | '/review/'
+    | '/research/$projectId/session/$sessionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,10 +172,13 @@ export interface FileRouteTypes {
     | '/library'
     | '/design/$id'
     | '/rehearse/$id'
+    | '/research/$projectId'
     | '/review/$sessionId'
     | '/design'
     | '/rehearse'
+    | '/research'
     | '/review'
+    | '/research/$projectId/session/$sessionId'
   id:
     | '__root__'
     | '/'
@@ -152,10 +188,13 @@ export interface FileRouteTypes {
     | '/_authenticated/library'
     | '/_authenticated/design/$id'
     | '/_authenticated/rehearse/$id'
+    | '/_authenticated/research/$projectId'
     | '/_authenticated/review/$sessionId'
     | '/_authenticated/design/'
     | '/_authenticated/rehearse/'
+    | '/_authenticated/research/'
     | '/_authenticated/review/'
+    | '/_authenticated/research/$projectId/session/$sessionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -229,6 +268,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRehearseIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/research/': {
+      id: '/_authenticated/research/'
+      path: '/research'
+      fullPath: '/research/'
+      preLoaderRoute: typeof AuthenticatedResearchIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/research/$projectId': {
+      id: '/_authenticated/research/$projectId'
+      path: '/research/$projectId'
+      fullPath: '/research/$projectId'
+      preLoaderRoute: typeof AuthenticatedResearchProjectIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/review/': {
       id: '/_authenticated/review/'
       path: '/review'
@@ -243,17 +296,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReviewSessionIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/research/$projectId/session/$sessionId': {
+      id: '/_authenticated/research/$projectId/session/$sessionId'
+      path: '/session/$sessionId'
+      fullPath: '/research/$projectId/session/$sessionId'
+      preLoaderRoute: typeof AuthenticatedResearchProjectIdSessionSessionIdRouteImport
+      parentRoute: typeof AuthenticatedResearchProjectIdRoute
+    }
   }
 }
+
+interface AuthenticatedResearchProjectIdRouteChildren {
+  AuthenticatedResearchProjectIdSessionSessionIdRoute: typeof AuthenticatedResearchProjectIdSessionSessionIdRoute
+}
+
+const AuthenticatedResearchProjectIdRouteChildren: AuthenticatedResearchProjectIdRouteChildren =
+  {
+    AuthenticatedResearchProjectIdSessionSessionIdRoute:
+      AuthenticatedResearchProjectIdSessionSessionIdRoute,
+  }
+
+const AuthenticatedResearchProjectIdRouteWithChildren =
+  AuthenticatedResearchProjectIdRoute._addFileChildren(
+    AuthenticatedResearchProjectIdRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssuranceRoute: typeof AuthenticatedAssuranceRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedDesignIdRoute: typeof AuthenticatedDesignIdRoute
   AuthenticatedRehearseIdRoute: typeof AuthenticatedRehearseIdRoute
+  AuthenticatedResearchProjectIdRoute: typeof AuthenticatedResearchProjectIdRouteWithChildren
   AuthenticatedReviewSessionIdRoute: typeof AuthenticatedReviewSessionIdRoute
   AuthenticatedDesignIndexRoute: typeof AuthenticatedDesignIndexRoute
   AuthenticatedRehearseIndexRoute: typeof AuthenticatedRehearseIndexRoute
+  AuthenticatedResearchIndexRoute: typeof AuthenticatedResearchIndexRoute
   AuthenticatedReviewIndexRoute: typeof AuthenticatedReviewIndexRoute
 }
 
@@ -262,9 +339,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedDesignIdRoute: AuthenticatedDesignIdRoute,
   AuthenticatedRehearseIdRoute: AuthenticatedRehearseIdRoute,
+  AuthenticatedResearchProjectIdRoute:
+    AuthenticatedResearchProjectIdRouteWithChildren,
   AuthenticatedReviewSessionIdRoute: AuthenticatedReviewSessionIdRoute,
   AuthenticatedDesignIndexRoute: AuthenticatedDesignIndexRoute,
   AuthenticatedRehearseIndexRoute: AuthenticatedRehearseIndexRoute,
+  AuthenticatedResearchIndexRoute: AuthenticatedResearchIndexRoute,
   AuthenticatedReviewIndexRoute: AuthenticatedReviewIndexRoute,
 }
 
