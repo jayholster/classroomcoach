@@ -199,6 +199,18 @@ function RehearsePage() {
               </div>
             )}
             {data.events.map((e: SessionEvent, index: number) => (
+              e.kind === "scene_change" ? (
+                <div key={e.id} className="bg-muted/50 p-5 sm:p-6">
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Scene change</p>
+                  <p className="mt-1 text-sm font-medium text-primary">{e.resulting_state?.scene.label}</p>
+                  {e.resulting_state?.scene.description && (
+                    <p className="mt-1 text-sm text-muted-foreground">{e.resulting_state.scene.description}</p>
+                  )}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Present: {(e.resulting_state?.present_participants ?? []).join(", ") || "—"}
+                  </p>
+                </div>
+              ) : (
               <div key={e.id} className="p-5 sm:p-6">
                 <p className="mb-3 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   Turn {index + 1}
