@@ -294,8 +294,8 @@ export const submitRehearsalTurn = createServerFn({ method: "POST" })
       _state_update: stateUpdate as never,
       _resulting_state: nextState as never,
       _foundation_version: (versionRow as { foundation_version?: string } | null)?.foundation_version ?? "",
-      _model_provider: config.provider_type,
-      _model_identifier: config.model,
+      _model_provider: result.provider,
+      _model_identifier: result.model,
       _model_config_id: ((versionRow as { model_config_id?: string | null } | null)?.model_config_id ??
         undefined) as unknown as string,
       _prior_state: state as never,

@@ -153,6 +153,11 @@ async function callChatCompletions(
   if (config.temperature !== null && !config.model.startsWith("openai/gpt-5")) {
     body["temperature"] = config.temperature;
   }
+  // Gemini models support the provider's priority tier, which keeps live
+  // rehearsal turns responsive.
+  if (useGatewayHeader && config.model.startsWith("google/gemini-")) {
+    body["service_tier"] = "priority";
+  }
   const res = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",
     ...(signal ? { signal } : {}),
