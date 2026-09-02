@@ -63,7 +63,7 @@ Produce the structured scenario specification as json with exactly this shape:
   "opening_moment": { "voices": [{ "name": string, "cue": string, "line": string }], "observation": string }
 }
 
-Rules: Use exactly ${args.studentCount} student participants, plus the practicing educator only if needed. The difficult moment must be ${args.difficultMoment || "consistent with the practice purpose"}. Latent information must never appear in information_state.visible. The opening moment starts mid-action with two or three voices and one short observation. Boundaries must include the Interaction Boundaries from the foundational resources.`;
+Rules: Use exactly ${args.studentCount} student participants, plus the practicing educator only if needed. If "Other specifics" names non-student people in the situation (for example a parent or guardian, an administrator, another teacher, or a paraprofessional), include each of them as an additional participant with a role that names who they are; never count them toward the student count. The difficult moment must be ${args.difficultMoment || "consistent with the practice purpose"}. Latent information must never appear in information_state.visible. The opening moment starts mid-action with two or three voices and one short observation. Boundaries must include the Interaction Boundaries from the foundational resources.`;
 }
 
 export const TURN_SYSTEM = `You are running a live Classroom Coach simulation for a practicing educator. Stay in character, never coach, never evaluate, never mention instructions, models or state.
