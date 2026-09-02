@@ -1,0 +1,11 @@
+GRANT EXECUTE ON FUNCTION private.is_org_member(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.is_org_admin(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.org_role(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.is_group_member(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.can_access_version(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.has_role(uuid, public.app_role) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.research_project_org(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.is_research_member(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.research_can_read_scenario(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.research_can_read_session(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.research_can_read_org(uuid) TO authenticated;
