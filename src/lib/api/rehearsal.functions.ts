@@ -26,6 +26,8 @@ export interface SessionEvent {
     newly_revealed: string[];
     resolved: string[];
     new_unresolved: string[];
+    trajectory?: string;
+    closing?: boolean;
   } | null;
   prior_state: SimState | null;
   resulting_state: SimState | null;
