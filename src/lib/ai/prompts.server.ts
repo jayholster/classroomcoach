@@ -199,7 +199,10 @@ ${args.flags.map((f) => `- ${f.reason}${f.note ? `: ${f.note}` : ""}`).join("\n"
 
 # Task
 Return json:
-{ "strengths_observed": string[], "growth_opportunities": string[], "possible_next_rehearsal": string[] }
+{ "summary": string, "strengths_observed": string[], "growth_opportunities": string[], "possible_next_rehearsal": string[] }
 
-Two to four items in each list. Each item must reference something that actually happened in the recorded events.`;
+Write for a busy reader.
+- "summary": one paragraph, at most three sentences, describing what happened across the rehearsal and where it ended up.
+- Each list holds two or three items. Each item is a single sentence of at most 25 words, begins with "Turn N — " naming the turn it comes from, and describes something that actually happened in the recorded events.
+- No scores, no praise language, no implication that there was one correct response.`;
 }
