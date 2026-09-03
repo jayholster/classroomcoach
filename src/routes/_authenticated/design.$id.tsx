@@ -16,6 +16,7 @@ import {
 import { FoundationPanel } from "@/components/FoundationPanel";
 import { getScenario, listPeopleProfiles, publishVersion, saveDraftSpec } from "@/lib/api/scenarios.functions";
 import { generateStructuredScenario } from "@/lib/api/generate.functions";
+import { startRehearsal } from "@/lib/api/rehearsal.functions";
 import type { Participant, ScenarioSpec } from "@/lib/spec/schema";
 
 export const Route = createFileRoute("/_authenticated/design/$id")({
@@ -51,6 +52,7 @@ function DesignReview() {
   const generate = useServerFn(generateStructuredScenario);
   const saveSpec = useServerFn(saveDraftSpec);
   const publish = useServerFn(publishVersion);
+  const beginRehearsal = useServerFn(startRehearsal);
 
   const scenarioQuery = useQuery({ queryKey: ["scenario", id], queryFn: () => fetchScenario({ data: { id } }) });
   const peopleQuery = useQuery({ queryKey: ["people"], queryFn: () => fetchPeople() });
@@ -538,10 +540,10 @@ function DesignReview() {
                 </button>
                 <button
                   className={btn}
-                  disabled={!data.versions.length}
-                  onClick={() => navigate({ to: "/rehearse/$id", params: { id } })}
+                  disabled={busy !== null}
+                  onClick={() => void testSimulation()}
                 >
-                  TEST SIMULATION
+                  {busy === "test" ? "Opening rehearsal…" : "TEST SIMULATION"}
                 </button>
                 <button className={btnPrimary} onClick={() => void publishNow()} disabled={busy !== null}>
                   {busy === "publish" ? "Publishing…" : "PUBLISH VERSION"}
