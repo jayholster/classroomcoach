@@ -60,6 +60,7 @@ function DesignStart() {
   const createDoc = useServerFn(createDocumentRecord);
   const markUploaded = useServerFn(markDocumentUploaded);
   const finalize = useServerFn(finalizeDocument);
+  const derive = useServerFn(generateStructuredScenario);
 
   const [focus, setFocus] = useState("");
   const [customFocus, setCustomFocus] = useState("");
