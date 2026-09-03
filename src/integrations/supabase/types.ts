@@ -1879,14 +1879,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      is_session_instructor: {
-        Args: { _session_id: string; _user_id: string }
-        Returns: boolean
-      }
-      is_session_owner: {
-        Args: { _session_id: string; _user_id: string }
-        Returns: boolean
-      }
     }
     Enums: {
       app_role: "admin" | "educator" | "learner"
