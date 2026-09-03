@@ -1,0 +1,11 @@
+{
+  "name": "Classroom Coach — Demo",
+  "short_name": "Coach Demo",
+  "start_url": "/demo",
+  "scope": "/demo",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#0f1f3d",
+  "icons": [{ "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }]
+}
