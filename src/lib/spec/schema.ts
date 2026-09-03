@@ -180,7 +180,10 @@ export function renderVisibleResponse(vr: VisibleResponse): string {
   return `${voices}${observation}\n\nWhat do you do next?`;
 }
 
-export function applyStateUpdate(state: SimState, update: StateUpdate): SimState {
+export type StateUpdateInput = Omit<StateUpdate, "trajectory" | "closing"> &
+  Partial<Pick<StateUpdate, "trajectory" | "closing">>;
+
+export function applyStateUpdate(state: SimState, update: StateUpdateInput): SimState {
   const merge = (a: string[], b: string[]) => Array.from(new Set([...a, ...b]));
   return {
     active_participants: state.active_participants,
