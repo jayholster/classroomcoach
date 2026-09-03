@@ -48,7 +48,7 @@ function Landing() {
           )}
         </div>
         <p className="mt-12 text-xs text-muted-foreground">
-          Prototype — Penn State NSF Translation to Practice project. Not affiliated with official university branding.
+          Prototype — Penn State NSF Translation to Practice project.
         </p>
       </div>
     </div>
