@@ -74,63 +74,91 @@ export const TURN_SYSTEM = `You are running a live Classroom Coach simulation fo
 
 Return json only — a single JSON object with "visible_response" and "state_update", no prose, no markdown fences.`;
 
+/** Keeps the in-turn foundation short: mid-rehearsal only the governing rules matter. */
+function compactFoundation(resources: FoundationResource[], perResource = 900): string {
+  return resources
+    .map((r) => {
+      const body = r.body.length > perResource ? `${r.body.slice(0, perResource).trimEnd()}…` : r.body;
+      return `## ${r.name}\n${body}`;
+    })
+    .join("\n\n");
+}
+
 export function turnPrompt(args: {
   foundation: FoundationResource[];
   spec: ScenarioSpec;
   state: SimState;
   history: { role: string; text: string }[];
   userAction: string;
+  turnNumber: number;
 }): string {
   const present = new Set(args.state.present_participants.length ? args.state.present_participants : args.spec.participants.map((p) => p.name));
   const participants = args.spec.participants
+    .filter((p) => present.has(p.name))
     .map(
       (p) =>
-        `- ${p.name} (${p.role})${present.has(p.name) ? " [PRESENT]" : " [NOT PRESENT]"} goal: ${p.current_goal}; concern: ${p.current_concern}; knows: ${p.known_information.join("; ") || "—"}; latent (reveal only with an interactional reason): ${p.latent_information.join("; ") || "—"}`,
+        `- ${p.name} (${p.role}) goal: ${p.current_goal}; concern: ${p.current_concern}; knows: ${p.known_information.join("; ") || "—"}; latent (surface only when the educator's move directly touches it): ${p.latent_information.join("; ") || "—"}`,
     )
     .join("\n");
+  const away = args.spec.participants.filter((p) => !present.has(p.name)).map((p) => `${p.name} (${p.role})`);
   const history = args.history
-    .slice(-10)
-    .map((h) => `${h.role === "user" ? "Educator" : "Situation"}: ${h.text}`)
+    .slice(-8)
+    .map((h) => `${h.role === "user" ? "Educator" : "Situation"}: ${h.text.length > 700 ? `${h.text.slice(0, 700)}…` : h.text}`)
     .join("\n\n");
+  const lateInRehearsal = args.turnNumber >= 6;
 
   return `# Foundational resources
-${foundationText(args.foundation)}
+${compactFoundation(args.foundation)}
 
 # Published scenario specification
 Setting: ${args.spec.setting.label} — ${args.spec.setting.description}
 Current scene: ${args.state.scene.label || args.spec.setting.label} — ${args.state.scene.description || args.spec.setting.description}
 Practicing role: ${args.spec.practicing_role}
+Practice goal: ${args.spec.practice_goal}
 Starting moment: ${args.spec.conditions.starting_moment}
 Conditions: intensity ${args.spec.conditions.intensity}; pacing ${args.spec.conditions.pacing}; improvement ${args.spec.conditions.allow_improvement}; deterioration ${args.spec.conditions.allow_deterioration}; complications ${args.spec.conditions.allow_complications}
 Boundaries: ${args.spec.conditions.boundaries.join(" | ")}
 
-Published cast (closed roster; these names and roles cannot change):
+Present cast (closed roster; only these people may speak or act):
 ${participants}
+Not in this scene (never give them a voice): ${away.join(", ") || "none"}
 
 Relationships:
 ${args.spec.relationships.map((r) => `- ${r.between.join(" ↔ ")}: ${r.nature}${r.tension ? ` (tension: ${r.tension})` : ""}`).join("\n") || "- none recorded"}
 
 # Current simulation state
-${JSON.stringify(args.state, null, 2)}
+${JSON.stringify(args.state)}
 
 # Recent interaction
 ${history || "(the simulation is just beginning)"}
 
-# The educator has just done this
+# The educator has just done this (turn ${args.turnNumber})
 ${args.userAction}
 
 # Task
-Advance the situation by one short moment and return json. Use only voices from the published cast who are marked [PRESENT]. Never invent, rename, replace, or add a participant. Do not move anyone in or out of the scene; scene changes are explicit educator actions.
+Advance the situation by one short moment and return json. Use only voices from the present cast. Never invent, rename, replace, or add a participant. Do not move anyone in or out of the scene; scene changes are explicit educator actions.
+
+The room must MOVE. Read what the educator just did and let it land:
+- A plausible de-escalation, naming of feeling, boundary, or genuine question must produce visible change in at least one person — softening, hesitation, deflection, a harder edge, a look away, a partial answer. Silence or stonewalling is allowed only once, and only when the person's concern makes it inevitable; never twice in a row from the same person.
+- Never repeat a previous line, restate the same standoff, or hold every person in exactly the same stance as the last turn.
+- A move that misreads the situation may make things worse — that is legitimate movement too.
+- Record what shifted in relationship_changes and participation_changes, in plain language naming the person.
+- Set "trajectory" to "settling", "holding", or "escalating" based on where the room is after this turn. Use "holding" sparingly; two consecutive "holding" turns means the room is not responding, which is not allowed.
+
+Latent information: surface an item only when the educator's move directly touches it (naming the feeling behind it, asking about it, or creating enough safety for it). When the educator presses on a person's anxiety, fear, or embarrassment and that person has a latent item about it, surface it now rather than deflecting again. Never surface latent detail that has no bearing on the practice goal.
+
+Ending: ${lateInRehearsal ? "This rehearsal is far enough along to end. If the situation has reached a workable resting point — an agreement, a pause, a next step, or a clear refusal that ends the exchange — play a short closing beat where the moment visibly concludes, and set \"closing\": true." : "Do not end the situation yet unless the educator has clearly resolved or closed it; if they have, play a short closing beat and set \"closing\": true."}
 
 {
   "visible_response": { "voices": [{ "name": string, "cue": string, "line": string }], "observation": string },
   "state_update": {
     "relationship_changes": string[], "participation_changes": string[],
-    "newly_revealed": string[], "resolved": string[], "new_unresolved": string[]
+    "newly_revealed": string[], "resolved": string[], "new_unresolved": string[],
+    "trajectory": "settling" | "holding" | "escalating", "closing": boolean
   }
 }
 
-Two or three voices. The observation is one to three sentences of what is visibly happening; do not include the words "What do you do next?" — that line is added automatically. Only move an item into newly_revealed if it is currently latent and the educator's action gave an interactional reason for it to surface.`;
+One to three voices. The observation is one to three sentences of what is visibly happening; do not include the words "What do you do next?" — that line is added automatically.`;
 }
 
 export const REVIEW_SYSTEM = `You write the After-Action Review for a Classroom Coach rehearsal. You work only from the recorded event evidence you are given: prior state, educator action, what happened, and what changed.
