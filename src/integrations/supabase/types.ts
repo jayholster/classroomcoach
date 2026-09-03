@@ -1569,6 +1569,61 @@ export type Database = {
           },
         ]
       }
+      session_feedback: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          event_id: string | null
+          id: string
+          organization_id: string | null
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          organization_id?: string | null
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          organization_id?: string | null
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_feedback_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "simulation_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_feedback_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_feedback_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "rehearsal_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       simulation_events: {
         Row: {
           app_release: string | null

@@ -95,3 +95,63 @@ export const generateReview = createServerFn({ method: "POST" })
 
     return { ok: true as const, review };
   });
+
+export type SessionFeedbackNote = {
+  id: string;
+  body: string;
+  author_id: string;
+  author_email: string | null;
+  created_at: string;
+};
+
+/** Feedback an instructor left on a rehearsal. Visible to the rehearser and their instructors. */
+export const listSessionFeedback = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { sessionId: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("session_feedback")
+      .select("id, body, author_id, created_at")
+      .eq("session_id", data.sessionId)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    const list = (rows ?? []) as unknown as { id: string; body: string; author_id: string; created_at: string }[];
+    const authorIds = Array.from(new Set(list.map((row) => row.author_id)));
+    const { data: profiles } = authorIds.length
+      ? await context.supabase.from("profiles").select("id, email, display_name").in("id", authorIds)
+      : { data: [] };
+    const byId = new Map(
+      ((profiles ?? []) as unknown as { id: string; email: string | null; display_name: string | null }[]).map((p) => [
+        p.id,
+        p.display_name || p.email,
+      ]),
+    );
+    return {
+      notes: list.map((row) => ({ ...row, author_email: byId.get(row.author_id) ?? null })) as SessionFeedbackNote[],
+    };
+  });
+
+/** Adds instructor feedback. RLS allows this only for educators/admins in the session's organization. */
+export const addSessionFeedback = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { sessionId: string; body: string }) => input)
+  .handler(async ({ data, context }) => {
+    const body = data.body.trim();
+    if (!body) throw new Error("Write your feedback before saving it.");
+
+    const { data: sessionRow } = await context.supabase
+      .from("rehearsal_sessions")
+      .select("organization_id")
+      .eq("id", data.sessionId)
+      .maybeSingle();
+    const organizationId = (sessionRow as unknown as { organization_id: string | null } | null)?.organization_id ?? null;
+
+    const { error } = await context.supabase.from("session_feedback").insert({
+      session_id: data.sessionId,
+      author_id: context.userId,
+      organization_id: organizationId,
+      body,
+    } as never);
+    if (error) throw new Error("Only an instructor in this organization can leave feedback on a rehearsal.");
+    return { ok: true as const };
+  });

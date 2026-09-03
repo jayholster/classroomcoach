@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell, Section, btn, btnPrimary, input } from "@/components/AppShell";
 import { PRIVACY_REMINDER } from "@/lib/config";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { createScenario } from "@/lib/api/scenarios.functions";
 import { createDocumentRecord, finalizeDocument, markDocumentUploaded } from "@/lib/api/documents.functions";
 import { extractDocumentText } from "@/lib/documents/extractText";
+import { generateStructuredScenario } from "@/lib/api/generate.functions";
 
 export const Route = createFileRoute("/_authenticated/design/")({
   head: () => ({
@@ -59,6 +60,7 @@ function DesignStart() {
   const createDoc = useServerFn(createDocumentRecord);
   const markUploaded = useServerFn(markDocumentUploaded);
   const finalize = useServerFn(finalizeDocument);
+  const derive = useServerFn(generateStructuredScenario);
 
   const [focus, setFocus] = useState("");
   const [customFocus, setCustomFocus] = useState("");
@@ -73,8 +75,18 @@ function DesignStart() {
   const [files, setFiles] = useState<PendingFile[]>([]);
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState<0 | 1 | 2 | 3>(0);
+  const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!busy) return;
+    const started = Date.now();
+    setElapsed(0);
+    const timer = window.setInterval(() => setElapsed(Math.round((Date.now() - started) / 1000)), 1000);
+    return () => window.clearInterval(timer);
+  }, [busy]);
 
   const fillExample = () => {
     const focusPool = PRACTICE_FOCUSES.filter((item) => item.value !== focus);
@@ -116,6 +128,7 @@ function DesignStart() {
       return;
     }
     setBusy(true);
+    setStage(1);
     setError(null);
     try {
       const { id } = await create({
@@ -135,6 +148,7 @@ function DesignStart() {
         },
       });
 
+      if (files.length) setStage(2);
       for (const [index, pending] of files.entries()) {
         setFiles((list) => list.map((file, i) => (i === index ? { ...file, status: "Uploading" } : file)));
         try {
@@ -155,6 +169,9 @@ function DesignStart() {
           setFiles((list) => list.map((file, i) => i === index ? { ...file, status: "Failed", message: (err as Error).message } : file));
         }
       }
+      setStage(3);
+      const derived = await derive({ data: { scenarioId: id } });
+      if (!derived.ok) setError(derived.error);
       void navigate({ to: "/design/$id", params: { id } });
     } catch (err) {
       setError((err as Error).message);
@@ -237,13 +254,36 @@ function DesignStart() {
           </Section>
 
           {error && <p className="mb-3 text-sm text-destructive" role="alert">{error}</p>}
-          <button className={`${btnPrimary} min-h-11 px-5`} onClick={() => void build()} disabled={busy}>{busy ? "Preparing your rehearsal…" : "BUILD SCENARIO DRAFT"}</button>
+          <button className={`${btnPrimary} min-h-11 px-5`} onClick={() => void build()} disabled={busy}>{busy ? "Building your simulation…" : "BUILD SCENARIO"}</button>
+          {busy && (
+            <div className="mt-4 panel p-4" role="status" aria-live="polite">
+              <div className="flex items-baseline justify-between gap-4">
+                <p className="text-sm font-medium text-foreground">{BUILD_STAGES[stage - 1] ?? BUILD_STAGES[0]}</p>
+                <span className="text-xs tabular-nums text-muted-foreground">{elapsed}s</span>
+              </div>
+              <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${Math.min(95, stage * 30 + Math.min(elapsed, 20))}%` }} />
+              </div>
+              <ol className="mt-3 space-y-1 text-xs text-muted-foreground">
+                {BUILD_STAGES.map((label, index) => (
+                  <li key={label} className={index + 1 <= stage ? "text-foreground" : ""}>{index + 1 < stage ? "✓ " : index + 1 === stage ? "• " : "· "}{label}</li>
+                ))}
+              </ol>
+              <p className="mt-3 text-xs text-muted-foreground">Deriving the people and relationships usually takes under a minute.</p>
+            </div>
+          )}
         </div>
         <aside className="space-y-4"><FoundationPanel /><div className="panel p-5 text-xs leading-relaxed text-muted-foreground">Your choices guide the scenario. You review and govern the generated situation before anyone rehearses it.</div></aside>
       </div>
     </AppShell>
   );
 }
+
+const BUILD_STAGES = [
+  "Saving your setup",
+  "Reading your documents",
+  "Deriving the people, relationships, and opening moment",
+] as const;
 
 function ChoiceCard({ selected, onClick, title, description }: { selected: boolean; onClick: () => void; title: string; description: string }) {
   return <button type="button" aria-pressed={selected} onClick={onClick} className={`rounded-sm border p-4 text-left transition-colors ${selected ? "border-primary bg-accent/60 ring-1 ring-ring" : "border-border bg-card hover:border-ring/60 hover:bg-muted/50"}`}><span className="flex items-start gap-3"><span className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border ${selected ? "border-primary bg-primary" : "border-muted-foreground/50"}`}>{selected && <span className="size-1.5 rounded-full bg-primary-foreground" />}</span><span><span className="block text-sm font-semibold text-foreground">{title}</span><span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{description}</span></span></span></button>;

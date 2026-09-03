@@ -19,3 +19,10 @@
 - [x] Clarify Library with status filters, search, stronger primary actions, and readable empty states
 - [x] Clarify Rehearse with resumable sessions, search, clearer setup, and a focused response composer
 - [x] Verify Library and Rehearse updates in the live preview
+
+## Faster, clearer rehearsals (complete)
+- One-click Build Scenario with staged progress
+- Test simulation opens a real session
+- Condensed turn prompt + responsiveness/latent/ending rules
+- Read of the room signals, trajectory chip, closing beat
+- Brief formatted review + instructor feedback

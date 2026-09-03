@@ -126,7 +126,7 @@ export const rerunMoment = createServerFn({ method: "POST" })
       const { value } = await callModelJson(
         config,
         TURN_SYSTEM,
-        turnPrompt({ foundation, spec, state, history: [], userAction: event.user_action }),
+        turnPrompt({ foundation, spec, state, history: [], userAction: event.user_action, turnNumber: 1 }),
       );
       const output = TurnOutputSchema.parse(value);
       return {

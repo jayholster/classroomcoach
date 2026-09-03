@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell, Chip, Section, btn, btnPrimary } from "@/components/AppShell";
 import { getRehearsalSession, type SessionEvent } from "@/lib/api/rehearsal.functions";
-import { generateReview } from "@/lib/api/review.functions";
+import { addSessionFeedback, generateReview, listSessionFeedback } from "@/lib/api/review.functions";
 import { renderVisibleResponse } from "@/lib/spec/schema";
 
 export const Route = createFileRoute("/_authenticated/review/$sessionId")({
@@ -142,10 +142,17 @@ function ReviewDetail() {
           </p>
         )}
         {review ? (
-          <div className="grid gap-6 sm:grid-cols-3">
-            <List label="Strengths observed" items={review.strengths_observed} />
-            <List label="Growth opportunities" items={review.growth_opportunities} />
-            <List label="Possible next rehearsal" items={review.possible_next_rehearsal} />
+          <div className="space-y-6">
+            {review.summary && (
+              <p className="max-w-3xl border-l-2 border-ring/40 pl-4 text-[0.98rem] leading-7 text-foreground">
+                {review.summary}
+              </p>
+            )}
+            <div className="grid gap-4 sm:grid-cols-3">
+              <BriefList label="What you did that moved things" items={review.strengths_observed} tone="accent" />
+              <BriefList label="Where it stalled" items={review.growth_opportunities} tone="warn" />
+              <BriefList label="Try next" items={review.possible_next_rehearsal} tone="default" />
+            </div>
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
@@ -229,8 +236,12 @@ function ReviewDetail() {
         </div>
       </Section>
 
+      <Section title="5 · Instructor feedback" description="Written notes from an educator on this rehearsal.">
+        <InstructorFeedback sessionId={sessionId} />
+      </Section>
+
       {data.flags.length > 0 && (
-        <Section title="5 · Flagged moments" description="Responses you marked for review.">
+        <Section title="6 · Flagged moments" description="Responses you marked for review.">
           <ul className="space-y-2 text-sm text-foreground">
             {data.flags.map((f) => (
               <li key={f.id}>
@@ -242,6 +253,82 @@ function ReviewDetail() {
         </Section>
       )}
     </AppShell>
+  );
+}
+
+/** Short, tagged review items — at most three, each capped so the page stays scannable. */
+function BriefList({ label, items, tone }: { label: string; items: string[]; tone: "accent" | "warn" | "default" }) {
+  const border = tone === "accent" ? "border-ring/50" : tone === "warn" ? "border-destructive/40" : "border-border";
+  return (
+    <div className={`rounded-sm border-l-2 ${border} bg-card/60 p-4`}>
+      <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{label}</h4>
+      <ul className="mt-2 space-y-2 text-sm leading-relaxed text-foreground">
+        {items.length ? (
+          items.slice(0, 3).map((item) => <li key={item}>{item}</li>)
+        ) : (
+          <li className="text-muted-foreground">Nothing recorded here.</li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
+function InstructorFeedback({ sessionId }: { sessionId: string }) {
+  const fetchNotes = useServerFn(listSessionFeedback);
+  const addNote = useServerFn(addSessionFeedback);
+  const notesQuery = useQuery({ queryKey: ["session-feedback", sessionId], queryFn: () => fetchNotes({ data: { sessionId } }) });
+  const [body, setBody] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [noteError, setNoteError] = useState<string | null>(null);
+
+  const save = async () => {
+    setSaving(true);
+    setNoteError(null);
+    try {
+      await addNote({ data: { sessionId, body } });
+      setBody("");
+      await notesQuery.refetch();
+    } catch (err) {
+      setNoteError((err as Error).message);
+    }
+    setSaving(false);
+  };
+
+  const notes = notesQuery.data?.notes ?? [];
+  return (
+    <div className="space-y-4">
+      {notes.length ? (
+        <ul className="space-y-3">
+          {notes.map((note) => (
+            <li key={note.id} className="rounded-sm border border-border p-4">
+              <p className="text-xs text-muted-foreground">
+                {note.author_email ?? "Instructor"} · {new Date(note.created_at).toLocaleString()}
+              </p>
+              <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-foreground">{note.body}</p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">No instructor feedback yet.</p>
+      )}
+      <div>
+        <label htmlFor="instructor-feedback" className="text-sm font-medium text-foreground">
+          Leave feedback (instructors only)
+        </label>
+        <textarea
+          id="instructor-feedback"
+          rows={3}
+          className="mt-2 w-full rounded-sm border border-input bg-background px-3 py-2 text-sm"
+          value={body}
+          placeholder="What you noticed in this rehearsal, and what to try next…"
+          onChange={(event) => setBody(event.target.value)}
+        />
+        {noteError && <p role="alert" className="mt-2 text-sm text-destructive">{noteError}</p>}
+        <button className={`${btn} mt-3`} onClick={() => void save()} disabled={saving || !body.trim()}>
+          {saving ? "Saving…" : "Save feedback"}
+        </button>
+      </div>
+    </div>
   );
 }
 
