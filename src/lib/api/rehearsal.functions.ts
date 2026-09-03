@@ -291,6 +291,8 @@ export const submitRehearsalTurn = createServerFn({ method: "POST" })
       newly_revealed: output.state_update.newly_revealed ?? [],
       resolved: output.state_update.resolved ?? [],
       new_unresolved: output.state_update.new_unresolved ?? [],
+      trajectory: output.state_update.trajectory || "holding",
+      closing: output.state_update.closing ?? false,
     };
     const nextState = applyStateUpdate(state, stateUpdate);
     const expectedSequence = (priorEvents[priorEvents.length - 1]?.sequence ?? 0) + 1;
