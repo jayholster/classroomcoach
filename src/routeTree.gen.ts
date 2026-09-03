@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BriefRouteImport } from './routes/brief'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedDesignIndexRouteImport } from './routes/_authenticated/design.index'
 import { Route as AuthenticatedDesignIdRouteImport } from './routes/_authenticated/design.$id'
@@ -35,6 +36,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BriefRoute = BriefRouteImport.update({
+  id: '/brief',
+  path: '/brief',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
@@ -98,6 +104,7 @@ const AuthenticatedResearchProjectIdSessionSessionIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/brief': typeof BriefRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof AuthenticatedDesignIdRoute
   '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/brief': typeof BriefRoute
   '/library': typeof AuthenticatedLibraryRoute
   '/design/$id': typeof AuthenticatedDesignIdRoute
   '/rehearse/$id': typeof AuthenticatedRehearseIdRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/brief': typeof BriefRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/design/$id': typeof AuthenticatedDesignIdRoute
   '/_authenticated/rehearse/$id': typeof AuthenticatedRehearseIdRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/brief'
     | '/library'
     | '/design/$id'
     | '/rehearse/$id'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/brief'
     | '/library'
     | '/design/$id'
     | '/rehearse/$id'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/brief'
     | '/_authenticated/library'
     | '/_authenticated/design/$id'
     | '/_authenticated/rehearse/$id'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BriefRoute: typeof BriefRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brief': {
+      id: '/brief'
+      path: '/brief'
+      fullPath: '/brief'
+      preLoaderRoute: typeof BriefRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/library': {
@@ -334,6 +354,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  BriefRoute: BriefRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
