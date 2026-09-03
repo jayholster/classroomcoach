@@ -264,7 +264,7 @@ export const submitRehearsalTurn = createServerFn({ method: "POST" })
       supabase: context.supabase,
       config,
       system: TURN_SYSTEM,
-      user: turnPrompt({ foundation, spec, state, history, userAction: data.action }),
+      user: turnPrompt({ foundation, spec, state, history, userAction: data.action, turnNumber: priorEvents.filter((e) => e.user_action).length + 1 }),
       schema: TurnOutputSchema,
       functionType: "turn",
       userId: context.userId,
