@@ -121,6 +121,9 @@ function RehearsePage() {
   };
 
   const turnCount = data.events.filter((e: SessionEvent) => e.kind === "turn").length;
+  const lastTurn = data.events.filter((e: SessionEvent) => e.kind === "turn" && e.state_update).slice(-1)[0];
+  const trajectory = lastTurn?.state_update?.trajectory || "";
+  const atClosingBeat = Boolean(lastTurn?.state_update?.closing);
   const currentPresent = data.state.present_participants.length
     ? data.state.present_participants
     : data.spec.participants.map((participant) => participant.name);
@@ -170,7 +173,12 @@ function RehearsePage() {
              <div className="flex flex-wrap gap-2">
                <Chip>{data.versionLabel}</Chip>
                <Chip>{currentPresent.length} present</Chip>
-               {ended && <Chip tone="warn">Ended</Chip>}
+               {trajectory && (
+                   <Chip tone={trajectory === "settling" ? "accent" : trajectory === "escalating" ? "warn" : "default"}>
+                     {trajectory === "settling" ? "Settling" : trajectory === "escalating" ? "Escalating" : "Holding"}
+                   </Chip>
+                 )}
+                 {ended && <Chip tone="warn">Ended</Chip>}
              </div>
           </div>
 
@@ -260,11 +268,7 @@ function RehearsePage() {
                           </div>
                         )}
                       </div>
-                      {e.state_update && e.state_update.relationship_changes.length > 0 && (
-                        <p className="border-t border-border pt-3 text-xs text-muted-foreground">
-                          Recorded change: {e.state_update.relationship_changes.join("; ")}
-                        </p>
-                      )}
+                      {e.state_update && <ReadOfTheRoom update={e.state_update} />}
                     </MessageContent>
                   </Message>
                 )}
@@ -278,6 +282,18 @@ function RehearsePage() {
             <p role="alert" className="mt-3 text-sm text-destructive">
               {error}
             </p>
+          )}
+
+          {!ended && atClosingBeat && (
+            <div className="mt-5 border border-ring/40 bg-accent/40 p-4">
+              <p className="text-sm font-medium text-foreground">This moment has reached a resting point.</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                You can keep going, change the scene, or close out now and read your review.
+              </p>
+              <button className={`${btnPrimary} mt-3`} onClick={() => void end()} disabled={busy}>
+                Close out this rehearsal and see your review
+              </button>
+            </div>
           )}
 
           {!ended && (
@@ -462,6 +478,28 @@ function RehearsePage() {
         </Drawer>
       )}
     </AppShell>
+  );
+}
+
+/** Subtle, non-scored read of which way the room moved on this turn. */
+function ReadOfTheRoom({ update }: { update: NonNullable<SessionEvent["state_update"]> }) {
+  const signals: { label: string; tone: "accent" | "warn" | "default" }[] = [
+    ...update.relationship_changes.map((item) => ({ label: item, tone: "default" as const })),
+    ...update.participation_changes.map((item) => ({ label: item, tone: "default" as const })),
+    ...update.newly_revealed.map((item) => ({ label: `Revealed: ${item}`, tone: "accent" as const })),
+    ...update.resolved.map((item) => ({ label: `Thread closed: ${item}`, tone: "accent" as const })),
+    ...update.new_unresolved.map((item) => ({ label: `New thread: ${item}`, tone: "warn" as const })),
+  ];
+  if (!signals.length) return null;
+  return (
+    <div className="border-t border-border pt-3">
+      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Read of the room</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {signals.slice(0, 5).map((signal, index) => (
+          <Chip key={`${signal.label}-${index}`} tone={signal.tone}>{signal.label}</Chip>
+        ))}
+      </div>
+    </div>
   );
 }
 
