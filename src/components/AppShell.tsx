@@ -75,7 +75,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <footer className="mx-auto max-w-6xl px-6 pb-10 text-xs text-muted-foreground">
-        Prototype — Penn State NSF Translation to Practice project. Not affiliated with official university branding.
+        Prototype — Penn State NSF Translation to Practice project.
       </footer>
     </div>
   );
