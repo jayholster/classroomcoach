@@ -158,6 +158,24 @@ function DesignReview() {
     setBusy(null);
   };
 
+  /** Opens a real rehearsal session for the latest published version. */
+  const testSimulation = async () => {
+    setBusy("test");
+    setError(null);
+    try {
+      if (!data?.versions.length) {
+        setError("Publish a version first — a rehearsal always runs against a frozen version.");
+        setBusy(null);
+        return;
+      }
+      const { sessionId } = await beginRehearsal({ data: { scenarioId: id } });
+      await navigate({ to: "/rehearse/$id", params: { id: sessionId } });
+    } catch (err) {
+      setError((err as Error).message);
+    }
+    setBusy(null);
+  };
+
   const setConditions = (patch: Partial<ScenarioSpec["conditions"]>) =>
     setSpec((s) => (s ? { ...s, conditions: { ...s.conditions, ...patch } } : s));
 
