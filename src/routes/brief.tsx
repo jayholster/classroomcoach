@@ -71,16 +71,16 @@ function PartnerBrief() {
         aria-label="Classroom Coach partner brief"
       >
         {/* Header */}
-        <header className="bg-primary px-[0.7in] pb-6 pt-7 text-primary-foreground">
+        <header className="bg-primary px-[0.7in] pb-4 pt-5 text-primary-foreground">
           <div className="flex items-start justify-between gap-6">
             <div>
-              <h1 className="font-[family-name:var(--font-display)] text-[27pt] font-semibold leading-none tracking-[0.06em]">
+              <h1 className="font-[family-name:var(--font-display)] text-[24pt] font-semibold leading-none tracking-[0.06em]">
                 CLASSROOM COACH
               </h1>
-              <p className="mt-3 font-[family-name:var(--font-display)] text-[12.5pt] leading-snug text-primary-foreground/95">
+              <p className="mt-2 font-[family-name:var(--font-display)] text-[11.5pt] leading-snug text-primary-foreground/95">
                 Practice difficult professional moments before they happen.
               </p>
-              <p className="mt-2 max-w-[5.4in] text-[8.4pt] leading-relaxed text-primary-foreground/75">
+              <p className="mt-1.5 max-w-[5.4in] text-[8pt] leading-relaxed text-primary-foreground/75">
                 Classroom Coach is a Penn State-developed platform for low-stakes rehearsal of difficult teaching,
                 facilitation, and professional situations.
               </p>
@@ -95,21 +95,21 @@ function PartnerBrief() {
           </div>
         </header>
 
-        <div className="flex-1 px-[0.7in] py-6">
+        <div className="flex-1 px-[0.7in] py-4">
           {/* Section 1 */}
           <section>
             <h2 className="text-[8pt] font-semibold uppercase tracking-[0.16em] text-brand">What Classroom Coach does</h2>
-            <p className="mt-2 text-[8.6pt] leading-relaxed">
+            <p className="mt-1.5 text-[8pt] leading-snug">
               Participants enter an unfolding situation and respond naturally in their own words. Simulated people
               respond, relationships and circumstances change, and the situation can improve, deteriorate, or become
               more complicated based on what happens.
             </p>
-            <p className="mt-1.5 text-[8.6pt] leading-relaxed text-muted-foreground">
+            <p className="mt-1 text-[8pt] leading-snug text-muted-foreground">
               Classroom Coach began in teacher preparation and is now being developed for use across education,
               informal learning, community, and workforce settings.
             </p>
 
-            <div className="mt-4 flex items-start gap-1">
+            <div className="mt-3 flex items-start gap-1">
               <Step label="WHAT SHOULD PEOPLE PRACTICE?" />
               <Arrow />
               <Step label="ADD LOCAL CONTEXT" sub="Policies • procedures • curriculum • program expectations • local knowledge" />
@@ -123,11 +123,11 @@ function PartnerBrief() {
           </section>
 
           {/* Section 2 */}
-          <section className="mt-6 border border-border bg-secondary/60 px-5 py-4">
+          <section className="mt-4 border border-border bg-secondary/60 px-5 py-3">
             <h2 className="text-[8pt] font-semibold uppercase tracking-[0.16em] text-brand">
               Built around your professional context
             </h2>
-            <div className="mt-2 flex gap-6">
+            <div className="mt-1.5 flex gap-5">
               <div className="flex-[1.6]">
                 <p className="text-[8.4pt] leading-relaxed">
                   Every organization has situations that experienced people learn how to navigate over time. Classroom
@@ -158,7 +158,7 @@ function PartnerBrief() {
           </section>
 
           {/* Section 3 */}
-          <section className="mt-6">
+          <section className="mt-4">
             <h2 className="text-[8pt] font-semibold uppercase tracking-[0.16em] text-brand">What could people rehearse?</h2>
             <div className="mt-2 grid grid-cols-4 gap-4">
               {[
@@ -176,12 +176,12 @@ function PartnerBrief() {
           </section>
 
           {/* Section 4 */}
-          <section className="mt-6 border-y-2 border-brand py-4">
-            <h2 className="font-[family-name:var(--font-display)] text-[13.5pt] font-semibold leading-snug text-primary">
+          <section className="mt-4 border-y-2 border-brand py-3">
+            <h2 className="font-[family-name:var(--font-display)] text-[12.5pt] font-semibold leading-snug text-primary">
               What does your organization know how to handle that you wish people could practice before they encounter
               it for real?
             </h2>
-            <div className="mt-3 flex gap-6">
+            <div className="mt-2 flex gap-5">
               <p className="w-[1.5in] shrink-0 text-[7.6pt] leading-snug text-muted-foreground">
                 We are looking for partners who can help us understand:
               </p>
@@ -202,11 +202,11 @@ function PartnerBrief() {
           </section>
 
           {/* Section 5 */}
-          <section className="mt-5">
+          <section className="mt-4">
             <h2 className="text-[8pt] font-semibold uppercase tracking-[0.16em] text-brand">
               What participation could look like
             </h2>
-            <div className="mt-2 flex items-start gap-2">
+            <div className="mt-1.5 flex items-start gap-2">
               {[
                 ["1. CONVERSATION", "About 30 minutes. Share your needs, difficult situations, and current approaches."],
                 ["2. CO-DESIGN", "Shape one or two relevant simulations. Help us make them reflect the realities of your setting."],
@@ -229,7 +229,7 @@ function PartnerBrief() {
           </section>
 
           {/* Optional callout */}
-          <aside className="mt-4 border-l-2 border-border pl-3">
+          <aside className="mt-3 border-l-2 border-border pl-3">
             <div className="text-[6.8pt] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Preserving professional knowledge
             </div>
@@ -241,7 +241,7 @@ function PartnerBrief() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-auto flex items-end justify-between border-t border-border px-[0.7in] py-4 text-[7.4pt] text-muted-foreground">
+        <footer className="mt-auto flex items-end justify-between border-t border-border px-[0.7in] py-3 text-[7.2pt] text-muted-foreground">
           <div>
             <div className="font-semibold text-primary">Jacob Holster · Penn State · Classroom Coach</div>
             <div className="mt-0.5">Email: ________________________</div>
