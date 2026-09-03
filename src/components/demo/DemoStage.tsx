@@ -384,7 +384,7 @@ export function DemoStage() {
   const parts = new Set<string>();
   const beats: Beat[] = [];
   let scene = { label: "Middle-grades classroom, end of period", present: ["Aisha", "Ben"] };
-  let buildStage = BUILD_STAGES[0]!;
+  let buildStage = BUILD_STAGES[0] ?? "Saving your setup";
 
   for (const s of played) {
     if (s.kind === "design-select") chosen[s.field] = s.value;
@@ -410,9 +410,9 @@ export function DemoStage() {
   );
 
   return (
-    <div
+      <div
       key={loop}
-      className={`relative aspect-video w-full max-w-[1180px] overflow-hidden rounded-lg border border-border bg-background shadow-[0_1px_2px_rgba(16,24,40,0.06)] transition-opacity duration-700 ${
+      className={`relative aspect-video w-full max-w-[1180px] overflow-hidden rounded-lg border border-border bg-background shadow-sm transition-opacity duration-700 ${
         fading ? "opacity-0" : "opacity-100"
       }`}
     >
