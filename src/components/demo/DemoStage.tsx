@@ -24,6 +24,21 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+/** True when the viewport is a tall/narrow surface (phone in portrait). */
+export function usePortraitStage(override?: "phone" | "desktop") {
+  const [portrait, setPortrait] = useState(false);
+  useEffect(() => {
+    if (override) return;
+    const mq = window.matchMedia("(max-width: 700px), (orientation: portrait) and (max-width: 900px)");
+    setPortrait(mq.matches);
+    const onChange = () => setPortrait(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [override]);
+  if (override) return override === "phone";
+  return portrait;
+}
+
 /** Advances through the script on timers and loops back to the start. */
 function useDemoPlayer(reduced: boolean) {
   const [index, setIndex] = useState(0);
@@ -77,25 +92,56 @@ function useTypedText(text: string, active: boolean, reduced: boolean) {
 
 const card = "rounded-md border border-border bg-card";
 
-function Caption({ text }: { text: string }) {
+function Caption({ text, compact }: { text: string; compact: boolean }) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-5">
-      <div className="rounded-full border border-border bg-secondary/95 px-5 py-2 text-[13px] font-medium tracking-wide text-secondary-foreground shadow-sm">
+    <div className={`pointer-events-none absolute inset-x-0 bottom-0 flex justify-center ${compact ? "pb-4" : "pb-5"}`}>
+      <div
+        className={`mx-4 rounded-full border border-border bg-secondary/95 text-center font-medium tracking-wide text-secondary-foreground shadow-sm ${
+          compact ? "px-4 py-2 text-[13px]" : "px-5 py-2 text-[13px]"
+        }`}
+      >
         {text}
       </div>
     </div>
   );
 }
 
-function PhaseRail({ phase }: { phase: string }) {
+function PhaseRail({ phase, compact }: { phase: string; compact: boolean }) {
   const steps = [
-    { key: "design", label: "Design" },
-    { key: "build", label: "Build" },
-    { key: "spec", label: "Review scenario" },
-    { key: "rehearse", label: "Rehearse" },
-    { key: "review", label: "Reflect" },
+    { key: "design", label: "Design", short: "Design" },
+    { key: "build", label: "Build", short: "Build" },
+    { key: "spec", label: "Review scenario", short: "Scenario" },
+    { key: "rehearse", label: "Rehearse", short: "Rehearse" },
+    { key: "review", label: "Reflect", short: "Reflect" },
   ];
   const active = steps.findIndex((s) => s.key === phase);
+
+  if (compact) {
+    return (
+      <div className="border-b border-border bg-card px-4 pb-2.5 pt-3">
+        <div className="font-[family-name:var(--font-display)] text-[11px] font-semibold tracking-[0.16em] text-primary">
+          CLASSROOM COACH
+        </div>
+        <div className="mt-2 flex items-center gap-1">
+          {steps.map((s, i) => (
+            <span
+              key={s.key}
+              className={`rounded-sm px-2 py-1 text-[10px] tracking-wide transition-colors duration-500 ${
+                i === active
+                  ? "bg-primary text-primary-foreground"
+                  : i < active
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+              }`}
+            >
+              {s.short}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2 border-b border-border bg-card px-8 py-3">
       <div className="font-[family-name:var(--font-display)] text-xs font-semibold tracking-[0.14em] text-primary">
@@ -119,7 +165,36 @@ function PhaseRail({ phase }: { phase: string }) {
   );
 }
 
-function DesignPanel({ chosen }: { chosen: Partial<Record<DesignField, string>> }) {
+function DesignPanel({ chosen, compact }: { chosen: Partial<Record<DesignField, string>>; compact: boolean }) {
+  if (compact) {
+    return (
+      <div className="flex h-full flex-col gap-2.5 overflow-hidden px-4 py-4">
+        {DESIGN_FIELDS.map((f) => (
+          <div key={f.field} className={`${card} p-3`}>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{f.label}</div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {f.options.map((o) => {
+                const on = chosen[f.field] === o;
+                return (
+                  <span
+                    key={o}
+                    className={`rounded-sm border px-2 py-1 text-[11px] leading-tight transition-all duration-300 ${
+                      on
+                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                        : "border-border bg-background text-muted-foreground"
+                    }`}
+                  >
+                    {o}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 gap-5 px-8 py-7">
       {DESIGN_FIELDS.map((f) => (
@@ -150,20 +225,22 @@ function DesignPanel({ chosen }: { chosen: Partial<Record<DesignField, string>> 
 
 const BUILD_STAGES = ["Saving your setup", "Reading your documents", "Deriving the people, relationships, and opening moment"];
 
-function BuildPanel({ stage }: { stage: string }) {
+function BuildPanel({ stage, compact }: { stage: string; compact: boolean }) {
   const i = Math.max(0, BUILD_STAGES.indexOf(stage));
   const pct = ((i + 1) / BUILD_STAGES.length) * 100;
   return (
-    <div className="flex h-full flex-col justify-center px-16 py-10">
-      <div className="text-lg font-semibold tracking-tight text-primary">Building your scenario</div>
+    <div className={`flex h-full flex-col justify-center ${compact ? "px-6 py-8" : "px-16 py-10"}`}>
+      <div className={`font-semibold tracking-tight text-primary ${compact ? "text-base" : "text-lg"}`}>
+        Building your scenario
+      </div>
       <div className="mt-6 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
         <div className="h-full rounded-full bg-primary transition-all duration-700 ease-out" style={{ width: `${pct}%` }} />
       </div>
       <ul className="mt-6 space-y-2.5">
         {BUILD_STAGES.map((s, n) => (
-          <li key={s} className="flex items-center gap-2.5 text-sm">
+          <li key={s} className={`flex items-start gap-2.5 ${compact ? "text-[13px]" : "text-sm"}`}>
             <span
-              className={`h-1.5 w-1.5 rounded-full transition-colors duration-500 ${n <= i ? "bg-primary" : "bg-border"}`}
+              className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full transition-colors duration-500 ${n <= i ? "bg-primary" : "bg-border"}`}
             />
             <span className={n <= i ? "text-foreground" : "text-muted-foreground"}>{s}</span>
           </li>
@@ -173,53 +250,104 @@ function BuildPanel({ stage }: { stage: string }) {
   );
 }
 
-function SpecPanel({ parts }: { parts: Set<string> }) {
+function CastBlock() {
+  return (
+    <>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Who is in the room</div>
+      <div className="mt-3 space-y-3">
+        {DEMO_CAST.map((p) => (
+          <div key={p.name} className="border-l-2 border-accent pl-3">
+            <div className="text-sm font-semibold text-foreground">
+              {p.name} <span className="font-normal text-muted-foreground">— {p.role}</span>
+            </div>
+            <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              Wants: {p.goal} · Worried about: {p.concern}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function RelationshipsBlock() {
+  return (
+    <>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+        What is already between them
+      </div>
+      <div className="mt-3 space-y-2">
+        {DEMO_RELATIONSHIPS.map((r) => (
+          <div key={r.between} className="text-xs text-foreground">
+            <span className="font-semibold">{r.between}</span> — {r.nature}{" "}
+            <span className="text-muted-foreground">(tension: {r.tension})</span>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function OpeningBlock() {
+  return (
+    <>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Opening moment</div>
+      <p className="mt-3 text-xs leading-relaxed text-foreground">
+        Aisha is standing. Ben is talking past her to the room. The bell has already gone.
+      </p>
+    </>
+  );
+}
+
+function ProvenanceBlock() {
+  return (
+    <>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Where this came from</div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {DEMO_PROVENANCE.map((p) => (
+          <span key={p} className="rounded-sm border border-border bg-secondary px-2 py-1 text-[11px] text-secondary-foreground">
+            {p}
+          </span>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function SpecPanel({ parts, compact }: { parts: Set<string>; compact: boolean }) {
+  if (compact) {
+    // Only the block being revealed is on screen, so nothing gets squeezed.
+    const current = parts.has("opening") ? "opening" : parts.has("relationships") ? "relationships" : "cast";
+    return (
+      <div className="flex h-full flex-col gap-3 px-4 py-4">
+        {current === "cast" && <div className={`${card} p-4`}>{<CastBlock />}</div>}
+        {current === "relationships" && <div className={`${card} p-4`}>{<RelationshipsBlock />}</div>}
+        {current === "opening" && (
+          <>
+            <div className={`${card} p-4`}>{<OpeningBlock />}</div>
+            <div className={`${card} p-4`}>{<ProvenanceBlock />}</div>
+          </>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-5 gap-5 px-8 py-7">
       <div className="col-span-3 space-y-4">
         <div className={`${card} p-4 transition-opacity duration-700 ${parts.has("cast") ? "opacity-100" : "opacity-0"}`}>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Who is in the room</div>
-          <div className="mt-3 space-y-3">
-            {DEMO_CAST.map((p) => (
-              <div key={p.name} className="border-l-2 border-accent pl-3">
-                <div className="text-sm font-semibold text-foreground">
-                  {p.name} <span className="font-normal text-muted-foreground">— {p.role}</span>
-                </div>
-                <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                  Wants: {p.goal} · Worried about: {p.concern}
-                </div>
-              </div>
-            ))}
-          </div>
+          <CastBlock />
         </div>
         <div className={`${card} p-4 transition-opacity duration-700 ${parts.has("relationships") ? "opacity-100" : "opacity-0"}`}>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">What is already between them</div>
-          <div className="mt-3 space-y-2">
-            {DEMO_RELATIONSHIPS.map((r) => (
-              <div key={r.between} className="text-xs text-foreground">
-                <span className="font-semibold">{r.between}</span> — {r.nature}{" "}
-                <span className="text-muted-foreground">(tension: {r.tension})</span>
-              </div>
-            ))}
-          </div>
+          <RelationshipsBlock />
         </div>
       </div>
       <div className="col-span-2 space-y-4">
         <div className={`${card} p-4 transition-opacity duration-700 ${parts.has("opening") ? "opacity-100" : "opacity-0"}`}>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Opening moment</div>
-          <p className="mt-3 text-xs leading-relaxed text-foreground">
-            Aisha is standing. Ben is talking past her to the room. The bell has already gone.
-          </p>
+          <OpeningBlock />
         </div>
         <div className={`${card} p-4 transition-opacity duration-700 ${parts.has("opening") ? "opacity-100" : "opacity-0"}`}>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Where this came from</div>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {DEMO_PROVENANCE.map((p) => (
-              <span key={p} className="rounded-sm border border-border bg-secondary px-2 py-1 text-[11px] text-secondary-foreground">
-                {p}
-              </span>
-            ))}
-          </div>
+          <ProvenanceBlock />
         </div>
       </div>
     </div>
@@ -284,15 +412,29 @@ function ReadStrip({ read, trajectory }: Extract<Beat, { type: "read" }>) {
   );
 }
 
-function RehearsePanel({ beats, scene }: { beats: Beat[]; scene: { label: string; present: string[] } }) {
+function RehearsePanel({
+  beats,
+  scene,
+  compact,
+}: {
+  beats: Beat[];
+  scene: { label: string; present: string[] };
+  compact: boolean;
+}) {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [beats.length]);
 
+  const visible = beats.slice(compact ? -3 : -5);
+
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-border bg-secondary/60 px-8 py-2.5">
+      <div
+        className={`border-b border-border bg-secondary/60 ${
+          compact ? "space-y-0.5 px-4 py-2" : "flex items-center justify-between px-8 py-2.5"
+        }`}
+      >
         <div className="text-xs text-secondary-foreground">
           <span className="font-semibold">Scene:</span> {scene.label}
         </div>
@@ -300,8 +442,8 @@ function RehearsePanel({ beats, scene }: { beats: Beat[]; scene: { label: string
           <span className="font-semibold text-secondary-foreground">In the room:</span> {scene.present.join(", ")}
         </div>
       </div>
-      <div className="flex-1 space-y-3 overflow-hidden px-8 py-5">
-        {beats.slice(-5).map((b, i) => {
+      <div className={`flex-1 space-y-3 overflow-hidden ${compact ? "px-4 py-4 pb-16" : "px-8 py-5"}`}>
+        {visible.map((b, i) => {
           if (b.type === "voices") return <VoiceBlock key={i} voices={b.voices} observation={b.observation} />;
           if (b.type === "read") return <ReadStrip key={i} {...b} />;
           if (b.type === "scene")
@@ -323,7 +465,7 @@ function RehearsePanel({ beats, scene }: { beats: Beat[]; scene: { label: string
             );
           return (
             <div key={i} className="flex justify-end">
-              <div className="max-w-[75%] rounded-md bg-primary px-4 py-3">
+              <div className={`rounded-md bg-primary px-4 py-3 ${compact ? "max-w-[90%]" : "max-w-[75%]"}`}>
                 <div className="text-[11px] uppercase tracking-[0.1em] text-primary-foreground/70">Your move</div>
                 <p className="mt-1 text-sm leading-relaxed text-primary-foreground">
                   {b.text}
@@ -339,7 +481,51 @@ function RehearsePanel({ beats, scene }: { beats: Beat[]; scene: { label: string
   );
 }
 
-function ReviewPanel() {
+/** In portrait the review is revealed in sequence so the panel never overflows. */
+function useRevealSteps(count: number, ms: number, enabled: boolean) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (!enabled) return;
+    setN(0);
+    const id = setInterval(() => setN((v) => (v >= count ? v : v + 1)), ms);
+    return () => clearInterval(id);
+  }, [count, ms, enabled]);
+  return enabled ? n : count;
+}
+
+function ReviewPanel({ compact }: { compact: boolean }) {
+  const revealed = useRevealSteps(DEMO_REVIEW.sections.length + 1, 1600, compact);
+
+  if (compact) {
+    return (
+      <div className="flex h-full flex-col gap-3 overflow-hidden px-4 py-4 pb-16">
+        <div className={`${card} p-4`}>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">After-action review</div>
+          <p className="mt-2 text-[13px] leading-relaxed text-foreground">{DEMO_REVIEW.summary}</p>
+        </div>
+        {DEMO_REVIEW.sections.slice(Math.max(0, revealed - 2), revealed).map((s) => (
+          <div key={s.title} className={`${card} p-3.5`}>
+            <div className="text-xs font-semibold text-primary">{s.title}</div>
+            <ul className="mt-2 space-y-1.5">
+              {s.items.map((it) => (
+                <li key={it} className="text-[12px] leading-relaxed text-foreground">
+                  · {it}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        {revealed > DEMO_REVIEW.sections.length && (
+          <div className={`${card} p-3.5`}>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Instructor feedback</div>
+            <div className="mt-2 text-xs font-semibold text-foreground">{DEMO_REVIEW.feedback.author}</div>
+            <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{DEMO_REVIEW.feedback.text}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="grid h-full grid-cols-5 gap-5 px-8 py-7">
       <div className="col-span-3 space-y-4">
@@ -373,7 +559,7 @@ function ReviewPanel() {
   );
 }
 
-export function DemoStage() {
+export function DemoStage({ compact = false }: { compact?: boolean }) {
   const reduced = usePrefersReducedMotion();
   const { index, loop, fading } = useDemoPlayer(reduced);
   const step = DEMO_SCRIPT[index] as DemoStep;
@@ -409,22 +595,24 @@ export function DemoStage() {
     typing && i === beats.length - 1 && b.type === "educator" ? { ...b, text: typedText } : b,
   );
 
+  const frame = compact
+    ? "relative h-[100dvh] w-full overflow-hidden bg-background"
+    : "relative aspect-video w-full max-w-[1180px] overflow-hidden rounded-lg border border-border bg-background shadow-sm";
+
   return (
-      <div
+    <div
       key={loop}
-      className={`relative aspect-video w-full max-w-[1180px] overflow-hidden rounded-lg border border-border bg-background shadow-sm transition-opacity duration-700 ${
-        fading ? "opacity-0" : "opacity-100"
-      }`}
+      className={`${frame} transition-opacity duration-700 ${fading ? "opacity-0" : "opacity-100"}`}
     >
-      <PhaseRail phase={phase} />
-      <div className="h-[calc(100%-49px)]">
-        {phase === "design" && <DesignPanel chosen={chosen} />}
-        {phase === "build" && <BuildPanel stage={buildStage} />}
-        {phase === "spec" && <SpecPanel parts={parts} />}
-        {phase === "rehearse" && <RehearsePanel beats={renderedBeats} scene={scene} />}
-        {phase === "review" && <ReviewPanel />}
+      <PhaseRail phase={phase} compact={compact} />
+      <div className={compact ? "h-[calc(100%-64px)]" : "h-[calc(100%-49px)]"}>
+        {phase === "design" && <DesignPanel chosen={chosen} compact={compact} />}
+        {phase === "build" && <BuildPanel stage={buildStage} compact={compact} />}
+        {phase === "spec" && <SpecPanel parts={parts} compact={compact} />}
+        {phase === "rehearse" && <RehearsePanel beats={renderedBeats} scene={scene} compact={compact} />}
+        {phase === "review" && <ReviewPanel compact={compact} />}
       </div>
-      <Caption text={step.caption} />
+      <Caption text={step.caption} compact={compact} />
     </div>
   );
 }
