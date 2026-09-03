@@ -210,14 +210,15 @@ function PartnerBrief() {
                 ["2. CO-DESIGN", "Shape one or two relevant simulations. Help us make them reflect the realities of your setting."],
                 ["3. PILOT", "Try Classroom Coach with a small group. Help us understand what works, what does not, and what would support broader use."],
               ].map(([t, d], i) => (
-                <>
-                  {i > 0 && <Arrow key={`a${i}`} />}
-                  <div key={t} className="flex-1 border-t-2 border-primary pt-1.5">
+                <Fragment key={t}>
+                  {i > 0 && <Arrow />}
+                  <div className="flex-1 border-t-2 border-primary pt-1.5">
                     <div className="text-[7.8pt] font-semibold tracking-[0.05em] text-primary">{t}</div>
                     <p className="mt-1 text-[7pt] leading-snug text-muted-foreground">{d}</p>
                   </div>
-                </>
+                </Fragment>
               ))}
+
             </div>
             <p className="mt-2 text-[6.8pt] leading-snug text-muted-foreground">
               A smaller number of organizations may be invited to participate more substantially as implementation and
