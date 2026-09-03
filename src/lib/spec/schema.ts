@@ -166,6 +166,8 @@ export function validateTurnOutput(output: TurnOutput, presentParticipants: Set<
 }
 
 export const ReviewSchema = z.object({
+  /** One short paragraph describing what happened across the rehearsal. */
+  summary: z.string().default(""),
   strengths_observed: z.array(z.string()).default([]),
   growth_opportunities: z.array(z.string()).default([]),
   possible_next_rehearsal: z.array(z.string()).default([]),
