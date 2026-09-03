@@ -105,8 +105,9 @@ export const SimStateSchema = z.object({
 export type SimState = z.infer<typeof SimStateSchema>;
 
 export const SCENE_PRESETS = [
-  "Later the same day",
+  "Pull one student aside",
   "Hallway right after class",
+  "Later the same day",
   "The next class period",
   "A meeting after school",
   "A family conference",
@@ -118,12 +119,19 @@ export const VisibleResponseSchema = z.object({
 });
 export type VisibleResponse = z.infer<typeof VisibleResponseSchema>;
 
+export const TRAJECTORIES = ["settling", "holding", "escalating"] as const;
+export type Trajectory = (typeof TRAJECTORIES)[number];
+
 export const StateUpdateSchema = z.object({
   relationship_changes: z.array(z.string()).default([]),
   participation_changes: z.array(z.string()).default([]),
   newly_revealed: z.array(z.string()).default([]),
   resolved: z.array(z.string()).default([]),
   new_unresolved: z.array(z.string()).default([]),
+  /** Which way the room is moving after this turn. Defaulted so stored states keep parsing. */
+  trajectory: z.union([z.enum(TRAJECTORIES), z.literal("")]).default("holding"),
+  /** True when the room has played a closing beat and the rehearsal can be closed out. */
+  closing: z.boolean().default(false),
 });
 export type StateUpdate = z.infer<typeof StateUpdateSchema>;
 
